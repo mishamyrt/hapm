@@ -1,5 +1,5 @@
 """HAPM packages controller module"""
-from os.path import isdir
+from os.path import isdir, join
 from os import mkdir
 from typing import List, Dict
 
@@ -24,7 +24,7 @@ class PackagesController:
     def __init__(self, path: str):
         self._path = path
 
-        lock_path = f"{self._path}/lock.json"
+        lock_path = join(self._path, "lock.json")
         self._lock = LockFile(lock_path)
 
         if isdir(self._path):
@@ -38,7 +38,7 @@ class PackagesController:
                 lock = raw_lock[package_type]
             else:
                 lock = None
-            path = f"{self._path}/{package_type}"
+            path = join(self._path, package_type)
             self._modules.append(Module(
                 path=path,
                 lock=lock
