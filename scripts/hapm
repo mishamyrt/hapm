@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+from arrrgs import command, no_command, arg, run
+
+from libhapm.packages import Manifest, repo_name
+from libhapm.packages.controller import PackagesController
+
+STORAGE_DIR = ".hapm"
+MANIFEST_PATH = "./hapm.yaml"
+
+
+@no_command()
+def sync(_, store: PackagesController):
+    """Synchronizes local versions of components with the manifest."""
+    store.apply(Manifest(MANIFEST_PATH))
+
+@command(
+    arg('--type', '-t', required=True, default=None, help="Package type"),
+    arg('path', default=None, help="Output path")
+)
+def put(args, store: PackagesController):
+    """Synchronizes local versions of components with the manifest."""
+    store.export(args.type, args.path)
+
+@command(name="list")
+def list_packages(_, store: PackagesController):
+    """Print current version of components."""
+    values = store.values()
+    for package_type, packages in values.items():
+        print(f"┌ {package_type.capitalize()} ")
+        i = 0
+        for package in packages:
+            if i == len(packages) - 1:
+                prefix = '└─'
+            else:
+                prefix = '├─'
+            name = repo_name(package["url"])
+            version = package["version"]
+            print(f"{prefix} {name}@{version}")
+            i += 1
+
+
+def prepare(args):
+    """Creates HAPM context"""
+    return args, PackagesController(STORAGE_DIR)
+
+
+if __name__ == "__main__":
+    run(prepare=prepare)

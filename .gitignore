@@ -1,0 +1,11 @@
+# Generated files
+
+__pycache__
+*.egg-info
+.vscode
+
+/build/
+/venv/
+/dist/
+.hapm/
+.version

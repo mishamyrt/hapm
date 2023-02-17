@@ -1,0 +1,6 @@
+---
+integrations:
+  - github.com/mishamyrt/dohome_rgb@v0.3.0
+  - github.com/mishamyrt/myrt_desk_hass@master
+
+
