@@ -1,8 +1,10 @@
 ruamel.yaml==0.17.21
-pylint==2.15.4
 arrrgs==0.0.5
+gitpython==3.1.30
+
+# dev
+pylint==2.15.4
 yapf==0.32.0
 wheel==0.38.4
-gitpython==3.1.30
 alive-progress==3.0.1
 twine==4.0.2

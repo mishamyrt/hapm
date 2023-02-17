@@ -26,6 +26,11 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License"
     ],
+    install_requires=[
+        'ruamel.yaml==0.17.21',
+        'arrrgs==0.0.5',
+        'gitpython==3.1.30'
+    ],
     python_requires='>=3.7',
     package_dir={'': '.'},
 )

@@ -1,4 +1,4 @@
-VERSION = 0.0.1
+VERSION = 0.0.2
 DIST_PATH = ./dist
 VENV_PATH = ./venv
 VENV = . $(VENV_PATH)/bin/activate;
