@@ -63,10 +63,12 @@ class Integration:
         components_path = join(self.path, "custom_components")
         components = listdir(components_path)
         for component in components:
+            source = join(components_path, component)
             destination = join(path, component)
             if isdir(destination):
                 rmtree(destination)
-            copy_tree(join(components_path, component), destination)
+            if isdir(source):
+                copy_tree(source, destination)
 
     @staticmethod
     def from_lock(lock: IntegrationLock) -> Integration:
