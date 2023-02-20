@@ -28,7 +28,7 @@ install-venv: $(DIST_PATH)
 
 .PHONY: lint
 lint:
-	$(VENV) pylint $(SRC)
+	$(VENV) ruff check .
 
 configure: requirements.txt
 	rm -rf $(VENV_PATH)

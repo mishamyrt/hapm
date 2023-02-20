@@ -3,7 +3,7 @@ arrrgs==0.0.5
 gitpython==3.1.30
 
 # dev
-pylint==2.15.4
+ruff==0.0.249
 yapf==0.32.0
 wheel==0.38.4
 alive-progress==3.0.1
