@@ -10,7 +10,9 @@ from typing import TypedDict
 
 from git import Repo
 
-from libhapm.packages import Package, repo_name
+from libhapm.versions import find_latest_stable, is_newer
+from libhapm.packages.package import Package
+from libhapm.packages.path import repo_name
 
 # Integration sync statuses
 IN_SYNC = 0
@@ -49,15 +51,24 @@ class Integration:
 
     def switch_to(self, version: str) -> bool:
         self.repo.git.reset('--hard')
-        data = self.repo.remote().fetch()
-        for i in data:
-            print(i.ref)
+        self.repo.remote().fetch()
         self.repo.git.checkout(version)
         self.version = version
 
     def remove(self):
         """Deletes the package from the file system"""
         rmtree(self.path)
+
+    def find_update(self) -> str | None:
+        """Searches for updates for integration, returns version or None if latest is in use."""
+        self.repo.remote().fetch()
+        tags = []
+        for tag in self.repo.tags:
+            tags.append(str(tag))
+        latest = find_latest_stable(tags)
+        if is_newer(self.version, latest):
+            return latest
+        return None
 
     def export(self, path: str):
         """Deletes the package from the file system"""

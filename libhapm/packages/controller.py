@@ -62,6 +62,13 @@ class PackagesController:
             values[module.package_type()] = module.values()
         return values
 
+    def updates(self) -> List[Package]:
+        """Searches for updates for packages, returns list of available updates."""
+        updates: List[Package] = []
+        for module in self._modules:
+            updates.extend(module.updates())
+        return updates
+
     def export(self, package_type: str, path: str):
         """Deletes the package from the file system"""
         if not isdir(path):

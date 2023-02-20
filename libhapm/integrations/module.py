@@ -1,7 +1,9 @@
 """HAPM integrations module"""
 from typing import Dict, List
 
-from ..packages import Package, PackagesModule
+from libhapm.packages.module import PackagesModule
+from libhapm.packages.package import Package
+
 from .integration import Integration, IntegrationLock
 
 
@@ -54,6 +56,18 @@ class IntegrationsModule(PackagesModule):
         """Deletes the package from the file system"""
         for (_, integration) in self._items.items():
             integration.export(path)
+
+    def updates(self) -> List[Package]:
+        """Searches for updates for packages, returns list of available updates."""
+        updates: List[Package] = []
+        for (_, integration) in self._items.items():
+            version = integration.find_update()
+            if version is not None:
+                updates.append({
+                    "url": integration.url,
+                    "version": version
+                })
+        return updates
 
     def _clean_to(self, urls: List[str]) -> bool:
         """Deletes integrations that are not on the list"""

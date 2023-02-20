@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from arrrgs import command, no_command, arg, run, global_args
+from arrrgs import arg, command, global_args, no_command, run
 
 from libhapm.packages import Manifest, repo_name
 from libhapm.packages.controller import PackagesController
@@ -25,6 +25,13 @@ def sync(args, store: PackagesController):
 def put(args, store: PackagesController):
     """Synchronizes local versions of components with the manifest."""
     store.export(args.type, args.path)
+
+@command()
+def updates(args, store: PackagesController):
+    """Prints available packages updates."""
+    store.updates()
+    if args.dry is True:
+        exit(0)
 
 @command(name="list")
 def list_packages(_, store: PackagesController):

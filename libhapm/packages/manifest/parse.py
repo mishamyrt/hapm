@@ -2,7 +2,7 @@ from re import match
 from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
-from libhapm.packages import Package
+from libhapm.packages.package import Package
 
 from .types import ManifestDict
 

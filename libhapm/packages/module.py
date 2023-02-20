@@ -27,6 +27,9 @@ class PackagesModule(Generic[T]):
     def export(self, path: str) -> bool:
         """Dumps the required data from the packages to the specified folder."""
 
+    def updates(self) -> List[Package]:
+        """Searches for updates for packages, returns list of available updates."""
+
     @staticmethod
     def package_type() -> str:
         """Returns module package type"""

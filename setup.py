@@ -19,7 +19,6 @@ setuptools.setup(
         'libhapm.integrations',
         'libhapm.packages',
         'libhapm.packages.manifest',
-        'libhapm.repository',
     ],
     scripts=['scripts/hapm'],
     classifiers=[

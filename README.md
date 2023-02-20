@@ -51,15 +51,9 @@ hapm list
 hapm get -t integration https://github.com/AlexxIT/XiaomiGateway3
 ```
 
-## Update
-
-**not yet implemented**
+## Updates
 
 ```sh
-# Update all packages to latest version
-hapm update
-# Update all packages to latest version
-hapm update <url>
-# Only print
-hapm update --dry
+# Prints updates
+hapm updates
 ```
