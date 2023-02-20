@@ -1,12 +1,12 @@
 """HAPM packages controller module"""
-from os.path import isdir, join
 from os import mkdir
-from typing import List, Dict
+from os.path import isdir, join
+from typing import Dict, List
 
 from libhapm.integrations import IntegrationsModule
 
-from .manifest import Manifest
 from .lock import LockFile
+from .manifest import Manifest
 from .module import PackagesModule
 from .package import Package
 

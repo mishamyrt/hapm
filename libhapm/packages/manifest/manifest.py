@@ -1,7 +1,6 @@
 """HAPM manifest controller"""
 from typing import Dict, List
 
-
 from ruamel.yaml import safe_load
 
 from ..package import Package

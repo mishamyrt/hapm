@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import List
+
 from json import dump, load
+from typing import List
 
 from .module import PackagesModule
 

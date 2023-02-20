@@ -1,5 +1,6 @@
 """Вспомогательные функции для работы с версиями"""
 from re import match
+
 from pkg_resources import parse_version
 
 STABLE_VERSION_RE = r'^v?\d+\.\d+(\.\d+)?$'

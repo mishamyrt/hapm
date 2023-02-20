@@ -1,5 +1,5 @@
-from typing import Tuple, Optional, List
 from re import match
+from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
 from libhapm.packages import Package

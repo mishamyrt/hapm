@@ -1,7 +1,7 @@
 """HAPM integrations module"""
-from typing import List, Dict
+from typing import Dict, List
 
-from ..packages import PackagesModule, Package
+from ..packages import Package, PackagesModule
 from .integration import Integration, IntegrationLock
 
 
@@ -54,8 +54,6 @@ class IntegrationsModule(PackagesModule):
         """Deletes the package from the file system"""
         for (_, integration) in self._items.items():
             integration.export(path)
-        # content = listdir(f"{self.path}/custom_components")
-        # copy_tree()
 
     def _clean_to(self, urls: List[str]) -> bool:
         """Deletes integrations that are not on the list"""

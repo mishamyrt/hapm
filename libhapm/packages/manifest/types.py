@@ -1,5 +1,6 @@
 from typing import List, Optional, TypedDict
 
+
 class ManifestDict(TypedDict):
     """List of packages divided into categories"""
     integrations: Optional[List[str]]

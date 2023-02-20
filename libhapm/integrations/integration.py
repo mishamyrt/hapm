@@ -1,15 +1,16 @@
 """HAPM storage integration utils"""
 from __future__ import annotations
-from typing import TypedDict
+
 from dataclasses import dataclass
-from os import listdir
-from os.path import join, isdir
 from distutils.dir_util import copy_tree
+from os import listdir
+from os.path import isdir, join
 from shutil import rmtree
+from typing import TypedDict
 
 from git import Repo
 
-from libhapm.packages import repo_name, Package
+from libhapm.packages import Package, repo_name
 
 # Integration sync statuses
 IN_SYNC = 0

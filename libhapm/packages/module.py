@@ -1,6 +1,6 @@
 """HAPM packages module base"""
 
-from typing import TypeVar, Generic, List
+from typing import Generic, List, TypeVar
 
 from .package import Package
 
