@@ -2,7 +2,7 @@ from re import match
 from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
-from libhapm.packages.package import Package
+from libhapm.package import PackageDescription
 
 from .types import ManifestDict
 
@@ -21,10 +21,10 @@ def parse_entry(entry: str) -> Tuple[Optional[str], Optional[str]]:
     return (url, parts.group(3))
 
 
-def parse_category(manifest: ManifestDict, key: str) -> List[Package]:
+def parse_category(manifest: ManifestDict, key: str) -> List[PackageDescription]:
     if key not in manifest:
         return []
-    items: List[Package] = []
+    items: List[PackageDescription] = []
     for entry in manifest[key]:
         (url, version) = parse_entry(entry)
         if url is None:
@@ -33,6 +33,7 @@ def parse_category(manifest: ManifestDict, key: str) -> List[Package]:
             raise TypeError(f"Version is missing: {entry}")
         items.append({
             "url": url,
-            "version": version
+            "version": version,
+            "kind": key
         })
     return items

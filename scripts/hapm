@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from arrrgs import arg, command, global_args, no_command, run
 
-from libhapm.packages import Manifest, repo_name
-from libhapm.packages.controller import PackagesController
+from libhapm.manifest import Manifest
+from libhapm.manager import PackageManager
 
 STORAGE_DIR = ".hapm"
 MANIFEST_PATH = "hapm.yaml"
@@ -14,46 +14,38 @@ global_args(
 
 
 @no_command()
-def sync(args, store: PackagesController):
+def sync(args, store: PackageManager):
     """Synchronizes local versions of components with the manifest."""
-    store.apply(Manifest(args.manifest))
+    manifest = Manifest(args.manifest)
+    manifest.load()
+    store.apply(manifest.values)
 
 @command(
     arg('--type', '-t', required=True, default=None, help="Package type"),
     arg('path', default=None, help="Output path")
 )
-def put(args, store: PackagesController):
+def put(args, store: PackageManager):
     """Synchronizes local versions of components with the manifest."""
     store.export(args.type, args.path)
 
 @command()
-def updates(args, store: PackagesController):
+def updates(args, store: PackageManager):
     """Prints available packages updates."""
-    store.updates()
-    if args.dry is True:
-        exit(0)
+    print(store.updates())
+    # if args.dry is True:
+    #     exit(0)
 
 @command(name="list")
-def list_packages(_, store: PackagesController):
+def list_packages(_, store: PackageManager):
     """Print current version of components."""
-    values = store.values()
-    for package_type, packages in values.items():
-        print(f"┌ {package_type.capitalize()} ")
-        i = 0
-        for package in packages:
-            if i == len(packages) - 1:
-                prefix = '└─'
-            else:
-                prefix = '├─'
-            name = repo_name(package["url"])
-            version = package["version"]
-            print(f"{prefix} {name}@{version}")
-            i += 1
+    for d in store.descriptions():
+        url, version, kind = d["url"], d["version"], d["kind"]
+        print(f"{kind} {url}@{version}")
 
 
 def prepare(args):
     """Creates HAPM context"""
-    return args, PackagesController(args.storage)
+    return args, PackageManager(args.storage)
 
 
 if __name__ == "__main__":

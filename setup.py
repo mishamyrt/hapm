@@ -16,9 +16,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     packages=[
         'libhapm',
-        'libhapm.integrations',
-        'libhapm.packages',
-        'libhapm.packages.manifest',
+        'libhapm.integration',
+        'libhapm.package',
+        'libhapm.manager',
+        'libhapm.manifest',
     ],
     scripts=['scripts/hapm'],
     classifiers=[

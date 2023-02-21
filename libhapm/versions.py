@@ -1,11 +1,12 @@
 """Вспомогательные функции для работы с версиями"""
 from re import match
+from typing import List
 
 from pkg_resources import parse_version
 
 STABLE_VERSION_RE = r'^v?\d+\.\d+(\.\d+)?$'
 
-def find_latest_stable(tags: dict) -> str:
+def find_latest_stable(tags: List[str]) -> str:
     """Находит последнюю стабильную версию в списке"""
     latest = '0.0.0'
     for tag in tags:
