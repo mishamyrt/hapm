@@ -16,6 +16,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     packages=[
         'libhapm',
+        'libhapm.cli',
         'libhapm.integration',
         'libhapm.package',
         'libhapm.manager',

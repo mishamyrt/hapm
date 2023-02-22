@@ -1,10 +1,10 @@
+"""HAPM manifest parsing utils"""
+
 from re import match
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 from libhapm.package import PackageDescription
-
-from .types import ManifestDict
 
 
 def parse_entry(entry: str) -> Tuple[Optional[str], Optional[str]]:
@@ -17,13 +17,13 @@ def parse_entry(entry: str) -> Tuple[Optional[str], Optional[str]]:
         url = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}"
     else:
         url = f"https://{parse_result.path}"
-    print(url)
     return (url, parts.group(3))
 
 
-def parse_category(manifest: ManifestDict, key: str) -> List[PackageDescription]:
+def parse_category(manifest: Dict[str, List[str]], key: str) -> List[PackageDescription]:
+    """Parses the manifest, turning it into a list of packages"""
     if key not in manifest:
-        return []
+        raise TypeError(f"Key {key} is not found in repo")
     items: List[PackageDescription] = []
     for entry in manifest[key]:
         (url, version) = parse_entry(entry)

@@ -1,11 +1,12 @@
 """HAPM manager module"""
-from os.path import isdir, isfile, join
-from typing import List, Dict
+from os.path import isdir, join
+from typing import Dict, List
 
 from libhapm.integration import IntegrationPackage
 from libhapm.package import BasePackage, PackageDescription
 from libhapm.versions import is_newer
 
+from .diff import PackageDiff
 from .lockfile import Lockfile
 
 PACKAGE_HANDLERS = {
@@ -14,6 +15,7 @@ PACKAGE_HANDLERS = {
 
 
 class PackageManager:
+    """The controller that manages the packets in the storage"""
 
     _packages: Dict[str, BasePackage] = {}
 
@@ -35,6 +37,35 @@ class PackageManager:
                 description, self._path)
             package.load()
             self._packages[package.url] = package
+
+    def diff(self, update: List[PackageDescription]) -> List[PackageDiff]:
+        """Finds the difference between the current state and the list of packets received.
+        Returns the modified package description"""
+        update_urls: List[str] = []
+        diffs: List[PackageDiff] = []
+        for description in update:
+            url, version = description["url"], description["version"]
+            update_urls.append(url)
+            diff: PackageDiff = description.copy()
+            if url in self._packages:
+                current_version = self._packages[url].version
+                if current_version == version:
+                    continue
+                else:
+                    diff["current_version"] = current_version
+                    diff["operation"] = "switch"
+            else:
+                diff["operation"] = "add"
+            diffs.append(diff)
+        for (url, integration) in self._packages.items():
+            try:
+                if update_urls.index(url):
+                    continue
+            except ValueError:
+                diff: PackageDiff = integration.description()
+                diff["operation"] = "delete"
+                diffs.append(diff)
+        return diffs
 
     def apply(self, update: List[PackageDescription]):
         """Applies the new configuration.
@@ -83,6 +114,7 @@ class PackageManager:
         return updates
 
     def descriptions(self) -> List[PackageDescription]:
+        """Collects a list of current package descriptions"""
         return [package.description() for _, package in self._packages.items()]
 
     def _clean_to(self, urls: List[str]) -> bool:
@@ -91,7 +123,7 @@ class PackageManager:
         urls_to_remove = []
         for (url, integration) in self._packages.items():
             try:
-                if urls.index(url) > -1:
+                if urls.index(url):
                     continue
             except ValueError:
                 integration.destroy()
