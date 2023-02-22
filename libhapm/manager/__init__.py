@@ -67,32 +67,28 @@ class PackageManager:
                 diffs.append(diff)
         return diffs
 
-    def apply(self, update: List[PackageDescription]):
+    def apply(self, diffs: List[PackageDiff]):
         """Applies the new configuration.
         Important: this method will make changes to the file system.
         Returns False if no changes were made."""
-        changed = False
-        updated_urls: List[str] = []
-        for description in update:
-            url, version = description["url"], description["version"]
-            updated_urls.append(url)
-            if url in self._packages:
-                package = self._packages[url]
-                if package.version == version:
-                    continue
-                else:
-                    package.switch(version)
-                    changed = True
-            else:
-                package = PACKAGE_HANDLERS[description["kind"]](
-                    description, self._path)
+        urls_to_remove = []
+        for diff in diffs:
+            operation = diff["operation"]
+            url = diff["url"]
+            if operation == "add":
+                package = PACKAGE_HANDLERS[diff["kind"]](
+                    diff, self._path)
                 package.initialize()
                 self._packages[url] = package
-                changed = True
-        deleted = self._clean_to(updated_urls)
-        if changed or deleted:
-            self._lock.dump(self.descriptions())
-        return changed or deleted
+            elif operation == "delete":
+                self._packages[url].destroy()
+                urls_to_remove.append(url)
+            else:
+                self._packages[url].switch(diff["version"])
+        # Delete keys in a separate loop so as not to change the iterated list
+        for url in urls_to_remove:
+            self._packages.pop(url, None)
+        self._lock.dump(self.descriptions())
 
     def export(self, kind: str, path: str):
         """Deletes the package from the file system"""
@@ -116,19 +112,3 @@ class PackageManager:
     def descriptions(self) -> List[PackageDescription]:
         """Collects a list of current package descriptions"""
         return [package.description() for _, package in self._packages.items()]
-
-    def _clean_to(self, urls: List[str]) -> bool:
-        """Deletes packages that are not on the list"""
-        changed = False
-        urls_to_remove = []
-        for (url, integration) in self._packages.items():
-            try:
-                if urls.index(url):
-                    continue
-            except ValueError:
-                integration.destroy()
-                urls_to_remove.append(url)
-                changed = True
-        for url in urls_to_remove:
-            self._packages.pop(url, None)
-        return changed
