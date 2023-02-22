@@ -96,16 +96,18 @@ class PackageManager:
             if integration.kind == kind:
                 integration.export(path)
 
-    def updates(self) -> List[PackageDescription]:
+    def updates(self) -> List[PackageDiff]:
         """Searches for updates for packages, returns list of available updates."""
-        updates: List[PackageDescription] = []
+        updates: List[PackageDiff] = []
         for (_, package) in self._packages.items():
             latest_version = package.latest_version()
             if is_newer(package.version, latest_version):
                 updates.append({
                     "url": package.url,
                     "kind": package.kind,
-                    "version": latest_version
+                    "version": latest_version,
+                    "current_version": package.version,
+                    "operation": "switch"
                 })
         return updates
 

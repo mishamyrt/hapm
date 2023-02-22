@@ -14,7 +14,7 @@ global_args(
     arg('--manifest', '-m', default=MANIFEST_PATH, help="Manifest path"),
     arg('--storage', '-s', default=STORAGE_DIR, help="Storage location"),
     arg('--dry', '-d',
-        default=BooleanOptionalAction,
+        action=BooleanOptionalAction,
         help="Only write information. Do not make any changes to the files")
 )
 
@@ -27,7 +27,7 @@ def sync(args, store: PackageManager):
     diff = store.diff(manifest.values)
     report_diff(diff)
     if args.dry is True:
-        exit(0)
+        return
     store.apply(diff)
     report_summary(diff)
 
@@ -42,11 +42,13 @@ def put(args, store: PackageManager):
 
 
 @command()
-def updates(args, store: PackageManager):
+def updates(_, store: PackageManager):
     """Prints available packages updates."""
-    print(store.updates())
-    # if args.dry is True:
-    #     exit(0)
+    diff = store.updates()
+    if len (diff) == 0:
+        print("All packages is up to date")
+        return
+    report_diff(diff)
 
 
 @command(name="list")
