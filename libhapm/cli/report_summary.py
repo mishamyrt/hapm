@@ -8,7 +8,7 @@ from .ink import ANSI_B_CYAN, ink
 
 
 def report_summary(diff: List[PackageDiff]):
-    """Prints the result of the successful work into the console"""
+    """Prints the result of the successful work into the stdout"""
     if len(diff) == 0:
         print("There's nothing to do here")
         return
