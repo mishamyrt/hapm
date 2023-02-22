@@ -11,6 +11,7 @@ def report_summary(diff: List[PackageDiff]):
     """Prints the result of the successful work into the console"""
     if len(diff) == 0:
         print("There's nothing to do here")
+        return
     adds = 0
     deletes = 0
     switches = 0
