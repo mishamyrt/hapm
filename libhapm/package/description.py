@@ -4,6 +4,6 @@ from typing import TypedDict
 
 class PackageDescription(TypedDict):
     """Dict describing the Home Assistant package"""
-    url: str
+    full_name: str
     version: str
     kind: str

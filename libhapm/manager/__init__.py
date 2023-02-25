@@ -1,6 +1,10 @@
 """HAPM manager module"""
+from os import mkdir
 from os.path import isdir, join
+from shutil import rmtree
 from typing import Dict, List
+
+from github import Github
 
 from libhapm.integration import IntegrationPackage
 from libhapm.package import BasePackage, PackageDescription
@@ -18,15 +22,20 @@ class PackageManager:
     """The controller that manages the packets in the storage"""
 
     _packages: Dict[str, BasePackage] = {}
+    _api: Github
 
-    def __init__(self, path: str, lockfile_name="lock.json"):
+    def __init__(self, path: str, api: Github, lockfile_name="_lock.json"):
         self._path = path
 
         lock_path = join(self._path, lockfile_name)
         self._lock = Lockfile(lock_path)
+        self._api = api
 
-        if isdir(self._path) and self._lock.exists():
-            self._boot_from_lock()
+        if isdir(self._path):
+            if self._lock.exists():
+                self._boot_from_lock()
+        else:
+            mkdir(self._path)
 
     def _boot_from_lock(self):
         descriptions = self._lock.load()
@@ -34,21 +43,20 @@ class PackageManager:
             return
         for description in descriptions:
             package = PACKAGE_HANDLERS[description["kind"]](
-                description, self._path)
-            package.load()
-            self._packages[package.url] = package
+                description, self._path, self._api)
+            self._packages[package.full_name] = package
 
     def diff(self, update: List[PackageDescription]) -> List[PackageDiff]:
         """Finds the difference between the current state and the list of packets received.
         Returns the modified package description"""
-        update_urls: List[str] = []
+        update_full_names: List[str] = []
         diffs: List[PackageDiff] = []
         for description in update:
-            url, version = description["url"], description["version"]
-            update_urls.append(url)
+            full_name, version = description["full_name"], description["version"]
+            update_full_names.append(full_name)
             diff: PackageDiff = description.copy()
-            if url in self._packages:
-                current_version = self._packages[url].version
+            if full_name in self._packages:
+                current_version = self._packages[full_name].version
                 if current_version == version:
                     continue
                 else:
@@ -57,9 +65,9 @@ class PackageManager:
             else:
                 diff["operation"] = "add"
             diffs.append(diff)
-        for (url, integration) in self._packages.items():
+        for (full_name, integration) in self._packages.items():
             try:
-                if update_urls.index(url):
+                if update_full_names.index(full_name):
                     continue
             except ValueError:
                 diff: PackageDiff = integration.description()
@@ -71,27 +79,30 @@ class PackageManager:
         """Applies the new configuration.
         Important: this method will make changes to the file system.
         Returns False if no changes were made."""
-        urls_to_remove = []
+        full_names_to_remove = []
         for diff in diffs:
             operation = diff["operation"]
-            url = diff["url"]
+            full_name = diff["full_name"]
             if operation == "add":
                 package = PACKAGE_HANDLERS[diff["kind"]](
-                    diff, self._path)
+                    diff, self._path, self._api)
                 package.initialize()
-                self._packages[url] = package
+                self._packages[full_name] = package
             elif operation == "delete":
-                self._packages[url].destroy()
-                urls_to_remove.append(url)
+                self._packages[full_name].destroy()
+                full_names_to_remove.append(full_name)
             else:
-                self._packages[url].switch(diff["version"])
+                self._packages[full_name].switch(diff["version"])
         # Delete keys in a separate loop so as not to change the iterated list
-        for url in urls_to_remove:
-            self._packages.pop(url, None)
+        for full_name in full_names_to_remove:
+            self._packages.pop(full_name, None)
         self._lock.dump(self.descriptions())
 
     def export(self, kind: str, path: str):
         """Deletes the package from the file system"""
+        if isdir(path):
+            rmtree(path)
+        mkdir(path)
         for (_, integration) in self._packages.items():
             if integration.kind == kind:
                 integration.export(path)
@@ -103,7 +114,7 @@ class PackageManager:
             latest_version = package.latest_version()
             if is_newer(package.version, latest_version):
                 updates.append({
-                    "url": package.url,
+                    "full_name": package.full_name,
                     "kind": package.kind,
                     "version": latest_version,
                     "current_version": package.version,

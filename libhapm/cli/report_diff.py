@@ -28,7 +28,7 @@ def _format_entry(diff: PackageDiff) -> str:
         prefix = "-"
         color = ANSI_RED
         version = ink(version, effects=ANSI_DIM)
-    name = repo_name(diff["url"])
+    name = repo_name(diff["full_name"])
     title = ink(f"{prefix} {name}", color=color)
     return f"{title} {version}"
 

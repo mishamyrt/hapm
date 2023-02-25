@@ -14,7 +14,7 @@ def _format_kind(kind: str) -> str:
 
 
 def _format_entry(package: PackageDescription) -> str:
-    name = repo_name(package["url"])
+    name = repo_name(package["full_name"])
     version = ink(package["version"], effects=ANSI_DIM)
     return f"  {name} {version}"
 
