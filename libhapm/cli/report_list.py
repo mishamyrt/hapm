@@ -3,7 +3,8 @@ from __future__ import annotations
 
 from typing import List
 
-from libhapm.package import PackageDescription, repo_name
+from libhapm.github import repo_name
+from libhapm.package import PackageDescription
 
 from .ink import ANSI_DIM, ink
 from .utils import group_by_kind

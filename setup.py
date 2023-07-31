@@ -17,9 +17,11 @@ setuptools.setup(
     packages=[
         'libhapm',
         'libhapm.cli',
+        'libhapm.github',
         'libhapm.integration',
         'libhapm.package',
         'libhapm.manager',
+        'libhapm.plugin',
         'libhapm.manifest',
     ],
     scripts=['scripts/hapm'],
@@ -30,7 +32,9 @@ setuptools.setup(
     install_requires=[
         'ruamel.yaml==0.17.21',
         'arrrgs==0.0.5',
-        'gitpython==3.1.30'
+        'gitpython==3.1.30',
+        'PyGithub==1.58.0',
+        'requests'
     ],
     python_requires='>=3.7',
     package_dir={'': '.'},

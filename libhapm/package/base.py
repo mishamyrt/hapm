@@ -3,14 +3,12 @@ from __future__ import annotations
 
 from os import remove
 from os.path import join
+from typing import List
+
+from libhapm.github import repo_name
 
 from .description import PackageDescription
 
-
-def repo_name(url: str) -> str:
-    """Extracts the repository name from the url"""
-    parts = url.split('/')
-    return parts[len(parts) - 1]
 
 class BasePackage:
     """This is an abstract package controller class.
@@ -47,6 +45,7 @@ class BasePackage:
         }
 
     def path(self, version=None) -> str:
+        """Returns the path to the integration cache file"""
         if version is None:
             version = self.version
         return f"{self.basepath}@{version}.{self.extension}"
@@ -67,5 +66,12 @@ class BasePackage:
     def export(self, path: str) -> None:
         """Method should offload the package payload to the specified folder"""
 
-    def latest_version(self) -> str:
-        """The method should look for package updates and return latest stable version"""
+    # Lifecycle hooks
+
+    @staticmethod
+    def pre_export(path: str):
+        """This method is called when you starting exporting packages of a certain kind"""
+
+    @staticmethod
+    def post_export(path: str):
+        """This method is called after you finish exporting packages of a certain kind"""

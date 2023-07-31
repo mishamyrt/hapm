@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from typing import List
 
+from libhapm.github import repo_name
 from libhapm.manager.diff import PackageDiff
-from libhapm.package import repo_name
 
 from .ink import ANSI_DIM, ANSI_GREEN, ANSI_RED, ANSI_YELLOW, ink
 from .utils import group_by_kind

@@ -7,6 +7,7 @@ from typing import Dict, List
 from github import Github
 
 from libhapm.integration import IntegrationPackage
+from libhapm.plugin import PluginPackage
 from libhapm.package import BasePackage, PackageDescription
 from libhapm.versions import is_newer
 
@@ -14,7 +15,8 @@ from .diff import PackageDiff
 from .lockfile import Lockfile
 
 PACKAGE_HANDLERS = {
-    IntegrationPackage.kind: IntegrationPackage
+    IntegrationPackage.kind: IntegrationPackage,
+    PluginPackage.kind: PluginPackage
 }
 
 
@@ -22,14 +24,14 @@ class PackageManager:
     """The controller that manages the packets in the storage"""
 
     _packages: Dict[str, BasePackage] = {}
-    _api: Github
+    _api_token: str
 
-    def __init__(self, path: str, api: Github, lockfile_name="_lock.json"):
+    def __init__(self, path: str, token: str, lockfile_name="_lock.json"):
         self._path = path
 
         lock_path = join(self._path, lockfile_name)
         self._lock = Lockfile(lock_path)
-        self._api = api
+        self._api_token = token
 
         if isdir(self._path):
             if self._lock.exists():
@@ -43,7 +45,7 @@ class PackageManager:
             return
         for description in descriptions:
             package = PACKAGE_HANDLERS[description["kind"]](
-                description, self._path, self._api)
+                description, self._path, self._api_token)
             self._packages[package.full_name] = package
 
     def diff(self, update: List[PackageDescription]) -> List[PackageDiff]:
@@ -85,7 +87,7 @@ class PackageManager:
             full_name = diff["full_name"]
             if operation == "add":
                 package = PACKAGE_HANDLERS[diff["kind"]](
-                    diff, self._path, self._api)
+                    diff, self._path, self._api_token)
                 package.initialize()
                 self._packages[full_name] = package
             elif operation == "delete":
@@ -98,14 +100,21 @@ class PackageManager:
             self._packages.pop(full_name, None)
         self._lock.dump(self.descriptions())
 
-    def export(self, kind: str, path: str):
+    def export(self, path: str):
         """Deletes the package from the file system"""
         if isdir(path):
             rmtree(path)
         mkdir(path)
+        kinds = []
         for (_, integration) in self._packages.items():
-            if integration.kind == kind:
-                integration.export(path)
+            if integration.kind not in kinds:
+                print(integration.kind, " is in ", kinds)
+                kinds.append(integration.kind)
+                PACKAGE_HANDLERS[integration.kind].pre_export(path)
+            integration.export(path)
+
+        for kind in kinds:
+            PACKAGE_HANDLERS[kind].post_export(path)
 
     def updates(self) -> List[PackageDiff]:
         """Searches for updates for packages, returns list of available updates."""

@@ -1,7 +1,8 @@
-VERSION = 0.0.4
+VERSION = 0.0.5
 DIST_PATH = ./dist
 VENV_PATH = ./venv
 VENV = . $(VENV_PATH)/bin/activate;
+NAME = $(shell uname -a)
 
 .PHONY: publish
 publish: clean $(DIST_PATH)

@@ -2,3 +2,5 @@
 integrations:
   - mishamyrt/dohome_rgb@v0.3.0
   - mishamyrt/myrt_desk_hass@v0.2.2
+plugins:
+  - PiotrMachowski/lovelace-xiaomi-vacuum-map-card@v2.1.2

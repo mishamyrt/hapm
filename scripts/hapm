@@ -42,12 +42,11 @@ def sync(args, store: PackageManager):
 
 
 @command(
-    arg('--type', '-t', required=True, default=None, help="Package type"),
     arg('path', default=None, help="Output path")
 )
 def put(args, store: PackageManager):
     """Synchronizes local versions of components with the manifest."""
-    store.export(args.type, args.path)
+    store.export(args.path)
 
 
 @command()
@@ -69,7 +68,7 @@ def list_packages(_, store: PackageManager):
 
 def prepare(args):
     """Creates HAPM context"""
-    return args, PackageManager(args.storage, Github(GITHUB_TOKEN))
+    return args, PackageManager(args.storage, GITHUB_TOKEN)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
 """HAPM package module"""
 
-from .base import BasePackage, repo_name
+from .base import BasePackage
 from .description import PackageDescription
