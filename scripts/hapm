@@ -2,8 +2,7 @@
 from argparse import BooleanOptionalAction
 from os import environ
 
-from arrrgs import arg, command, global_args, no_command, run
-from github import Github
+from arrrgs import arg, command, global_args, run
 
 from libhapm.cli import report_diff, report_list, report_no_token, report_summary
 from libhapm.manager import PackageManager
@@ -27,8 +26,7 @@ global_args(
         help="Only write information. Do not make any changes to the files")
 )
 
-
-@no_command()
+@command(root=True)
 def sync(args, store: PackageManager):
     """Synchronizes local versions of components with the manifest."""
     manifest = Manifest(args.manifest)

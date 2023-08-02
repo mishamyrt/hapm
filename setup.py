@@ -31,10 +31,11 @@ setuptools.setup(
     ],
     install_requires=[
         'ruamel.yaml==0.17.21',
-        'arrrgs==0.0.5',
+        'arrrgs==3.0.0',
+        'PyGithub==1.59.0',
         'gitpython==3.1.30',
-        'PyGithub==1.58.0',
-        'requests'
+        'requests==2.31.0',
+        'urllib3==1.26.6'
     ],
     python_requires='>=3.7',
     package_dir={'': '.'},
