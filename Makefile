@@ -16,7 +16,6 @@ clean:
 	rm -rf build
 	rm -rf dist
 
-.PHONY: build
 build: $(DIST_PATH)
 
 .PHONY: install
@@ -44,6 +43,7 @@ $(CONFIG_PATH): config.json
 	rm -f $(CONFIG_PATH)
 	cp config.json $(CONFIG_PATH)
 
+.PHONY: $(DIST_PATH)
 $(DIST_PATH):
 	echo $(VERSION) > .version
 	$(VENV) python setup.py sdist bdist_wheel
