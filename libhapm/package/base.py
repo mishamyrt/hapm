@@ -13,7 +13,7 @@ class BasePackage:
     """This is an abstract package controller class.
     The class that implements it must be able to control a certain type of package"""
 
-    # Must be overlapped by a child
+    # Must be overridden by a child
     kind: str
 
     # Package properties
