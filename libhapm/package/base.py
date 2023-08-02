@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from os import remove
 from os.path import join
-from typing import List
 
 from libhapm.github import repo_name
 

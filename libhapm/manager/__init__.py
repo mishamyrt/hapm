@@ -7,8 +7,8 @@ from typing import Dict, List
 from github import Github
 
 from libhapm.integration import IntegrationPackage
-from libhapm.plugin import PluginPackage
 from libhapm.package import BasePackage, PackageDescription
+from libhapm.plugin import PluginPackage
 from libhapm.versions import is_newer
 
 from .diff import PackageDiff
@@ -108,11 +108,9 @@ class PackageManager:
         kinds = []
         for (_, integration) in self._packages.items():
             if integration.kind not in kinds:
-                print(integration.kind, " is in ", kinds)
                 kinds.append(integration.kind)
                 PACKAGE_HANDLERS[integration.kind].pre_export(path)
             integration.export(path)
-
         for kind in kinds:
             PACKAGE_HANDLERS[kind].post_export(path)
 

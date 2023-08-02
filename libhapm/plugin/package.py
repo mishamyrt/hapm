@@ -1,19 +1,18 @@
 """HAPM integration package module"""
 from __future__ import annotations
 
-from distutils.dir_util import copy_tree
-from os import listdir, remove, mkdir
-from os.path import isdir, join
-from shutil import rmtree, copyfile
+from os import remove
+from os.path import join
+from pathlib import Path
+from shutil import copyfile
 
 from git import Repo
 from github import Github
 
 from libhapm.github import get_release_file, get_tree_file
 from libhapm.package import BasePackage
-from libhapm.versions import find_latest_stable
 
-FOLDER_NAME = "plugins"
+FOLDER_NAME = "www/custom_lovelace"
 
 
 class PluginPackage(BasePackage):
@@ -42,17 +41,12 @@ class PluginPackage(BasePackage):
     @staticmethod
     def pre_export(path: str):
         """This method is called when you starting exporting packages of a certain kind"""
-        mkdir(join(path, FOLDER_NAME))
+        path_dir = Path(join(path, FOLDER_NAME))
+        path_dir.mkdir(exist_ok=True, parents=True)
 
     @staticmethod
     def post_export(path: str):
-        """This method is called after you finish exporting packages of a certain kind"""
-        plugins_dir = join(path, FOLDER_NAME)
-        for plugin in listdir(plugins_dir):
-            plugin_path = join(plugins_dir, plugin)
-            print(plugin_path)
-
-        print(f"post_export plugins {path}")
+        """Do nothing"""
 
     def _download_script(self, version: str):
         content = self._get_script(version)
