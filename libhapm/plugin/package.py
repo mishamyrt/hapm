@@ -1,7 +1,7 @@
 """HAPM integration package module"""
 from __future__ import annotations
 
-from os import remove
+from os import listdir, remove
 from os.path import join
 from pathlib import Path
 from shutil import copyfile
@@ -10,9 +10,11 @@ from git import Repo
 from github import Github
 
 from libhapm.github import get_release_file, get_tree_file
+from libhapm.cli.ink import ink, ANSI_YELLOW, ANSI_DIM
 from libhapm.package import BasePackage
 
 FOLDER_NAME = "www/custom_lovelace"
+RESOURCES_REDIRECT_URL = "https://my.home-assistant.io/redirect/lovelace_resources/"
 
 
 class PluginPackage(BasePackage):
@@ -47,6 +49,16 @@ class PluginPackage(BasePackage):
     @staticmethod
     def post_export(path: str):
         """Do nothing"""
+        heading = (
+            "To connect JS plugins, they must be specified on the Lovelace resources.\n"
+            "Make sure those links are there:"
+        )
+        print(ink(heading, ANSI_YELLOW))
+        plugins_dir = join(path, FOLDER_NAME)
+        prefix = ink("*", effects=ANSI_DIM)
+        for plugin in listdir(plugins_dir):
+            print(f"{prefix} /local/custom_lovelace/{plugin}")
+        print(ink(f"Resources URL: {RESOURCES_REDIRECT_URL}", effects=ANSI_DIM))
 
     def _download_script(self, version: str):
         content = self._get_script(version)

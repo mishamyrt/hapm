@@ -34,7 +34,7 @@ hapm
 ## Export 
 
 ```sh
-hapm put -t integrations <path>
+hapm put <path>
 ```
 
 ## List 
