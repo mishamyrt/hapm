@@ -47,14 +47,15 @@ def put(args, store: PackageManager):
     store.export(args.path)
 
 
-# @command()
-# def updates(_, store: PackageManager):
-#     """Prints available packages updates."""
-#     diff = store.updates()
-#     if len(diff) == 0:
-#         print("All packages is up to date")
-#         return
-#     report_diff(diff)
+@command()
+def updates(_, store: PackageManager):
+    """Prints available packages updates."""
+    diff = store.updates()
+    if len(diff) == 0:
+        print("All packages is up to date")
+        return
+    report_diff(diff)
+
 
 
 @command(name="list")

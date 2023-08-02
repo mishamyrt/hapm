@@ -9,8 +9,8 @@ from shutil import copyfile
 from git import Repo
 from github import Github
 
+from libhapm.cli.ink import ANSI_DIM, ANSI_YELLOW, ink
 from libhapm.github import get_release_file, get_tree_file
-from libhapm.cli.ink import ink, ANSI_YELLOW, ANSI_DIM
 from libhapm.package import BasePackage
 
 FOLDER_NAME = "www/custom_lovelace"

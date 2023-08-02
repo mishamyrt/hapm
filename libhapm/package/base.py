@@ -4,7 +4,10 @@ from __future__ import annotations
 from os import remove
 from os.path import join
 
+from github import Github
+
 from libhapm.github import repo_name
+from libhapm.versions import find_latest_stable
 
 from .description import PackageDescription
 
@@ -52,6 +55,16 @@ class BasePackage:
     def destroy(self) -> None:
         """Deletes the package from the file system"""
         remove(self.path())
+
+    def latest_version(self) -> str:
+        api = Github(self._api_token)
+        repo = api.get_repo(self.full_name)
+        tags_list = repo.get_tags()
+        tags = []
+        for tag in tags_list:
+            tags.append(tag.name)
+        return find_latest_stable(tags)
+        
 
     # Abstract methods to be implemented by all types of package handlers
 
