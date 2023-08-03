@@ -70,7 +70,7 @@ def updates(_, store: PackageManager):
 
 
 
-@command(name="list", root=True)
+@command(name="list")
 def list_packages(_, store: PackageManager):
     """Print current version of components."""
     packages = store.descriptions()
