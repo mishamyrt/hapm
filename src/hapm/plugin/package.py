@@ -9,9 +9,9 @@ from shutil import copyfile
 from git import Repo
 from github import Github
 
-from libhapm.cli.ink import ANSI_DIM, ANSI_YELLOW, ink
-from libhapm.github import get_release_file, get_tree_file
-from libhapm.package import BasePackage
+from hapm.color import ANSI_DIM, ANSI_YELLOW, ink
+from hapm.git import get_release_file, get_tree_file
+from hapm.package import BasePackage
 
 FOLDER_NAME = "www/custom_lovelace"
 RESOURCES_REDIRECT_URL = "https://my.home-assistant.io/redirect/lovelace_resources/"

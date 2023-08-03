@@ -1,12 +1,12 @@
-#!/usr/bin/env python
+"""HAPM CLI application"""
 from argparse import BooleanOptionalAction
 from os import environ
 
 from arrrgs import arg, command, global_args, run
 
-from libhapm.cli import report_diff, report_list, report_no_token, report_summary
-from libhapm.manager import PackageManager
-from libhapm.manifest import Manifest
+from hapm.manager import PackageManager
+from hapm.manifest import Manifest
+from hapm.report import report_diff, report_list, report_no_token, report_summary
 
 TOKEN_VAR = 'GITHUB_PAT'
 if TOKEN_VAR not in environ:
@@ -69,6 +69,6 @@ def prepare(args):
     """Creates HAPM context"""
     return args, PackageManager(args.storage, GITHUB_TOKEN)
 
-
-if __name__ == "__main__":
+def start():
+    """Application entrypoint"""
     run(prepare=prepare)

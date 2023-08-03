@@ -5,7 +5,7 @@ from json import dump, load
 from os.path import isfile
 from typing import List
 
-from libhapm.package import PackageDescription
+from hapm.package import PackageDescription
 
 
 class Lockfile:

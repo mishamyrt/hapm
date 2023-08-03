@@ -3,7 +3,7 @@
 from re import match
 from typing import Dict, List, Optional, Tuple
 
-from libhapm.package import PackageDescription
+from hapm.package import PackageDescription
 
 
 def parse_entry(entry: str) -> Tuple[Optional[str], Optional[str]]:

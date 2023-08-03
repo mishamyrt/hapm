@@ -1,13 +1,13 @@
-ruamel.yaml==0.17.21
+ruamel.yaml==0.17.32
 arrrgs==3.0.0
-PyGithub==1.59.0
-gitpython==3.1.30
+PyGithub==1.59.1
+gitpython==3.1.32
 requests==2.31.0
 urllib3==1.26.6
 
 # dev
 ruff==0.0.249
-yapf==0.32.0
 wheel==0.38.4
-alive-progress==3.0.1
+build==0.10.0
 twine==4.0.2
+pylint==2.17.5

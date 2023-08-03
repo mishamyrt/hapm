@@ -1,7 +1,7 @@
 """HAPM package diff helpers"""
 from typing import Literal, Optional
 
-from libhapm.package import PackageDescription
+from hapm.package import PackageDescription
 
 
 class PackageDiff(PackageDescription):

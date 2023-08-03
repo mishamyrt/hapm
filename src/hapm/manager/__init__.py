@@ -6,10 +6,10 @@ from typing import Dict, List
 
 from github import Github
 
-from libhapm.integration import IntegrationPackage
-from libhapm.package import BasePackage, PackageDescription
-from libhapm.plugin import PluginPackage
-from libhapm.versions import is_newer
+from hapm.integration import IntegrationPackage
+from hapm.package import BasePackage, PackageDescription
+from hapm.plugin import PluginPackage
+from hapm.versions import is_newer
 
 from .diff import PackageDiff
 from .lockfile import Lockfile

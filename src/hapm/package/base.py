@@ -6,8 +6,8 @@ from os.path import join
 
 from github import Github
 
-from libhapm.github import repo_name
-from libhapm.versions import find_latest_stable
+from hapm.git import repo_name
+from hapm.versions import find_latest_stable
 
 from .description import PackageDescription
 

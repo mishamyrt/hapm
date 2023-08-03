@@ -1,3 +1,37 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hapm"
+authors = [
+    {name = "Mikhael Khrustik", email = "misha@myrt.co"},
+]
+description = "Home Assistant package management applications"
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["cli", "home-assistant", "package-manager"]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License"
+]
+dependencies = [
+    "ruamel.yaml==0.17.21",
+    "arrrgs==3.0.0",
+    "PyGithub==1.59.0",
+    "gitpython==3.1.30",
+    "requests==2.31.0",
+    "urllib3==1.26.6"
+]
+dynamic = ["version"]
+
+[project.scripts]
+hapm = "hapm.cli:start"
+
+[tool.setuptools.dynamic]
+version = {file = [".version"]}
+
 [tool.ruff]
 select = [
     "E",  # pycodestyle errors

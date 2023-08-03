@@ -1,16 +1,13 @@
+"""HAPM coloring util"""
 from __future__ import annotations
 
 from typing import List
 
-ANSI_RESET = "0"
-ANSI_DIM = "2"
-ANSI_RED = "31"
-ANSI_GREEN = "32"
-ANSI_YELLOW = "33"
-ANSI_B_CYAN = "96"
+from .constants import ANSI_RESET
 
 
-def ink(text: str | int, color=ANSI_RESET, effects: List[str] = None):
+def ink(text: str | int, color=ANSI_RESET, effects: List[str] = None) -> str:
+    """Colors the text to be output to the console"""
     prefix = f"\033[{color}"
     if effects is not None:
         prefix += ";" + ";".join(effects)

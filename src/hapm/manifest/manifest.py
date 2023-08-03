@@ -3,8 +3,8 @@ from typing import List
 
 from ruamel.yaml import safe_load
 
-from libhapm.cli import report_error
-from libhapm.package import PackageDescription
+from hapm.package import PackageDescription
+from hapm.report import report_error
 
 from .parse import parse_category
 

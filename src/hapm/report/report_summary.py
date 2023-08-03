@@ -2,9 +2,8 @@
 
 from typing import List
 
-from libhapm.manager.diff import PackageDiff
-
-from .ink import ANSI_B_CYAN, ink
+from hapm.color import ANSI_B_CYAN, ink
+from hapm.manager.diff import PackageDiff
 
 
 def report_summary(diff: List[PackageDiff]):

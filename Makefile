@@ -16,14 +16,17 @@ clean:
 	rm -rf build
 	rm -rf dist
 
-build: $(DIST_PATH)
+.PHONY: build
+build:
+	echo "$(VERSION)" > .version
+	$(VENV) python3 -m build
 
 .PHONY: install
 install: $(DIST_PATH)
 	pip3 install .
 
 .PHONY: install-venv
-install-venv: $(DIST_PATH)
+install-venv:
 	$(VENV) pip install .
 
 .PHONY: lint
@@ -42,8 +45,3 @@ $(CONFIG_PATH): config.json
 	mkdir -p $(CONFIG_DIR)
 	rm -f $(CONFIG_PATH)
 	cp config.json $(CONFIG_PATH)
-
-.PHONY: $(DIST_PATH)
-$(DIST_PATH):
-	echo $(VERSION) > .version
-	$(VENV) python setup.py sdist bdist_wheel

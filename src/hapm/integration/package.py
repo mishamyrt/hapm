@@ -6,8 +6,8 @@ from os import listdir, mkdir, remove
 from os.path import join
 from shutil import copytree, rmtree
 
-from libhapm.github import get_tarball
-from libhapm.package import BasePackage
+from hapm.git import get_tarball
+from hapm.package import BasePackage
 
 FOLDER_NAME = "custom_components"
 

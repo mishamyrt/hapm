@@ -3,10 +3,10 @@ from __future__ import annotations
 
 from typing import List
 
-from libhapm.github import repo_name
-from libhapm.package import PackageDescription
+from hapm.color import ANSI_DIM, ink
+from hapm.git import repo_name
+from hapm.package import PackageDescription
 
-from .ink import ANSI_DIM, ink
 from .utils import group_by_kind
 
 

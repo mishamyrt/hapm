@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from libhapm.package import PackageDescription
+from hapm.package import PackageDescription
 
 
 def group_by_kind(packages: List[PackageDescription]) -> Dict[str, List[PackageDescription]]:
