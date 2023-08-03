@@ -6,7 +6,15 @@ from arrrgs import arg, command, global_args, run
 
 from hapm.manager import PackageManager
 from hapm.manifest import Manifest
-from hapm.report import report_diff, report_list, report_no_token, report_summary
+from hapm.report import (
+    Progress,
+    report_diff,
+    report_list,
+    report_no_token,
+    report_summary,
+)
+
+progress = Progress()
 
 TOKEN_VAR = 'GITHUB_PAT'
 if TOKEN_VAR not in environ:
@@ -26,7 +34,7 @@ global_args(
         help="Only write information. Do not make any changes to the files")
 )
 
-@command(root=True)
+@command()
 def sync(args, store: PackageManager):
     """Synchronizes local versions of components with the manifest."""
     manifest = Manifest(args.manifest)
@@ -35,7 +43,9 @@ def sync(args, store: PackageManager):
     report_diff(diff)
     if args.dry is True:
         return
+    progress.start("Synchronizing the changes")
     store.apply(diff)
+    progress.stop()
     report_summary(diff)
 
 
@@ -50,7 +60,9 @@ def put(args, store: PackageManager):
 @command()
 def updates(_, store: PackageManager):
     """Prints available packages updates."""
+    progress.start("Looking for package updates")
     diff = store.updates()
+    progress.stop()
     if len(diff) == 0:
         print("All packages is up to date")
         return
@@ -58,7 +70,7 @@ def updates(_, store: PackageManager):
 
 
 
-@command(name="list")
+@command(name="list", root=True)
 def list_packages(_, store: PackageManager):
     """Print current version of components."""
     packages = store.descriptions()

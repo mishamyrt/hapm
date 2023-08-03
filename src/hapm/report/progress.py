@@ -31,13 +31,12 @@ class Progress:
         task = Thread(target=self._show_progress)
         task.daemon = True
         task.start()
-    
+
     def stop(self) -> None:
         """Stops active progress bar"""
         self._running = False
         while not self._finished:
             sleep(STEP_DELAY)
-        print("\n", end="\r")
 
     def _show_progress(self) -> None:
         states = [
@@ -45,9 +44,10 @@ class Progress:
             [2, True],
             [4, True]
         ]
+        prefix =  f"* {self._title} "
         while self._running:
-            line = f"{self._title} "
-            for i in enumerate(states):
+            line = prefix
+            for (i, _) in enumerate(states):
                 line += STEPS[states[i][0]]
                 if states[i][1]:
                     if states[i][0] == STEPS_COUNT - 1:
@@ -61,7 +61,6 @@ class Progress:
                         states[i][1] = True
             print(line, end="\r")
             sleep(STEP_DELAY)
-        padding = " " * STEPS_COUNT
-        print(f"{self._title} {padding}", end="\r")
+        blank = " " * (len(prefix) + STEPS_COUNT)
+        print(blank, end="\r")
         self._finished = True
-
