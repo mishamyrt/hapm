@@ -61,7 +61,7 @@ def parse_package_name(location: str) -> PackageLocation | None:
         version = "latest"
     return {
         "full_name": f"{user}/{repository}",
-        "version": version
+        "version": version[1:]
     }
 
 def parse_location(package: str) -> PackageLocation | None:
