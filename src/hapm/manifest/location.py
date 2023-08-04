@@ -30,6 +30,7 @@ def parse_github_url(url: str) -> ParseResult | None:
     return result
 
 def parse_location_url(url: str) -> PackageLocation | None:
+    """Parses location GitHub URL"""
     result = parse_github_url(url)
     if result is None:
         return None
@@ -48,17 +49,18 @@ def parse_location_url(url: str) -> PackageLocation | None:
 
 def parse_package_name(location: str) -> PackageLocation | None:
     """Parses the manifest entry to the address and version"""
-    result = match(r"(.[^@]*)(@(.*))?", location)
+    result = match(r"(.*)\/(.[^@]*)(@.{1,})?", location)
     if result is None:
         return None
-    full_name = result.group(1)
-    if full_name is None:
+    user = result.group(1)
+    repository = result.group(2)
+    if user is None or repository is None:
         return None
     version = result.group(3)
     if version is None:
         version = "latest"
     return {
-        "full_name": full_name,
+        "full_name": f"{user}/{repository}",
         "version": version
     }
 
@@ -80,4 +82,3 @@ def parse_location(package: str) -> PackageLocation | None:
         if location is not None:
             return location
     return location
-
