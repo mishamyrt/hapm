@@ -14,6 +14,8 @@ from hapm.report import (
     report_summary,
 )
 
+from .versions import updates
+
 progress = Progress()
 
 TOKEN_VAR = 'GITHUB_PAT'
@@ -31,7 +33,7 @@ global_args(
     arg('--storage', '-s', default=STORAGE_DIR, help="Storage location"),
     arg('--dry', '-d',
         action=BooleanOptionalAction,
-        help="Only write information. Do not make any changes to the files")
+        help="Only print information. Do not make any changes to the files")
 )
 
 @command()
@@ -55,18 +57,6 @@ def sync(args, store: PackageManager):
 def put(args, store: PackageManager):
     """Synchronizes local versions of components with the manifest."""
     store.export(args.path)
-
-
-@command()
-def updates(_, store: PackageManager):
-    """Prints available packages updates."""
-    progress.start("Looking for package updates")
-    diff = store.updates()
-    progress.stop()
-    if len(diff) == 0:
-        print("All packages is up to date")
-        return
-    report_diff(diff)
 
 
 

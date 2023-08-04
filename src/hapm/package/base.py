@@ -7,7 +7,7 @@ from os.path import join
 from github import Github
 
 from hapm.git import repo_name
-from hapm.versions import find_latest_stable
+from hapm.versions import find_latest
 
 from .description import PackageDescription
 
@@ -56,14 +56,14 @@ class BasePackage:
         """Deletes the package from the file system"""
         remove(self.path())
 
-    def latest_version(self) -> str:
+    def latest_version(self, stable_only=True) -> str:
         api = Github(self._api_token)
         repo = api.get_repo(self.full_name)
         tags_list = repo.get_tags()
         tags = []
         for tag in tags_list:
             tags.append(tag.name)
-        return find_latest_stable(tags)
+        return find_latest(tags, stable_only)
         
 
     # Abstract methods to be implemented by all types of package handlers

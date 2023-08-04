@@ -114,11 +114,11 @@ class PackageManager:
         for kind in kinds:
             PACKAGE_HANDLERS[kind].post_export(path)
 
-    def updates(self) -> List[PackageDiff]:
+    def updates(self, stable_only=True) -> List[PackageDiff]:
         """Searches for updates for packages, returns list of available updates."""
         updates: List[PackageDiff] = []
         for (_, package) in self._packages.items():
-            latest_version = package.latest_version()
+            latest_version = package.latest_version(stable_only)
             if is_newer(package.version, latest_version):
                 updates.append({
                     "full_name": package.full_name,
