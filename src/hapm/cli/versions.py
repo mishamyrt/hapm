@@ -31,7 +31,7 @@ def updates(args, store: PackageManager):
     if len(diff) == 0:
         print("All packages is up to date")
         return
-    report_diff(diff, True)
+    report_diff(diff, True, True)
 
 @command(
     arg('location', type=str, help="Package name or package URL")
