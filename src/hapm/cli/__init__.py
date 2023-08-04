@@ -39,9 +39,10 @@ def sync(args, store: PackageManager):
     report_diff(diff)
     if args.dry is True:
         return
-    progress.start("Synchronizing the changes")
-    store.apply(diff)
-    progress.stop()
+    if len(diff) > 0:
+        progress.start("Synchronizing the changes")
+        store.apply(diff)
+        progress.stop()
     report_summary(diff)
 
 
