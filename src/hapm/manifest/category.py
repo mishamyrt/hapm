@@ -1,17 +1,11 @@
 """HAPM manifest parsing utils"""
+from __future__ import annotations
 
-from re import match
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
 from hapm.package import PackageDescription
 
-
-def parse_entry(entry: str) -> Tuple[Optional[str], Optional[str]]:
-    """Parses the manifest entry to the address and version"""
-    parts = match(r"(.[^@]*)(@(.*))?", entry)
-    if parts is None:
-        return (None, None)
-    return (parts.group(1), parts.group(3))
+from .location import parse_location
 
 
 def parse_category(manifest: Dict[str, List[str]], key: str) -> List[PackageDescription]:
@@ -20,14 +14,14 @@ def parse_category(manifest: Dict[str, List[str]], key: str) -> List[PackageDesc
         raise TypeError(f"Key {key} is not found in repo")
     items: List[PackageDescription] = []
     for entry in manifest[key]:
-        (full_name, version) = parse_entry(entry)
-        if full_name is None:
+        location = parse_location(entry)
+        if location["full_name"] is None:
             raise TypeError(f"Wrong entity: {entry}")
-        if version is None:
+        if location["version"] == "latest":
             raise TypeError(f"Version is missing: {entry}")
         items.append({
-            "full_name": full_name,
-            "version": version,
+            "full_name": location["full_name"],
+            "version": location["version"],
             "kind": key
         })
     return items

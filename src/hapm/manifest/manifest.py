@@ -6,7 +6,7 @@ from ruamel.yaml import safe_load
 from hapm.package import PackageDescription
 from hapm.report import report_error
 
-from .parse import parse_category
+from .category import parse_category
 
 
 class Manifest:
