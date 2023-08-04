@@ -4,7 +4,8 @@ from __future__ import annotations
 from os import remove
 from os.path import join
 
-from hapm.git import get_versions, repo_name
+from hapm.git import get_versions
+from hapm.repository import repo_name
 from hapm.versions import find_latest
 
 from .description import PackageDescription

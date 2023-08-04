@@ -4,8 +4,8 @@ from __future__ import annotations
 from typing import List
 
 from hapm.color import ANSI_DIM, ANSI_GREEN, ANSI_RED, ANSI_YELLOW, ink
-from hapm.git import repo_name
 from hapm.manager.diff import PackageDiff
+from hapm.repository import repo_name
 
 from .utils import group_by_kind
 

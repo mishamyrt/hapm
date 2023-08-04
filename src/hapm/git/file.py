@@ -3,7 +3,8 @@ from __future__ import annotations
 
 from base64 import b64decode
 
-from github import GithubException, Repository
+from github import GithubException
+from github.Repository import Repository
 from requests import get
 
 
