@@ -24,4 +24,5 @@ def updates(args, store: PackageManager):
     if len(diff) == 0:
         print("All packages is up to date")
         return
-    report_diff(diff)
+    report_diff(diff, True)
+

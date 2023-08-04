@@ -14,7 +14,7 @@ def _format_kind(kind: str) -> str:
     return ink(kind.capitalize() + ":", effects=ANSI_DIM)
 
 
-def _format_entry(diff: PackageDiff) -> str:
+def _format_entry(diff: PackageDiff, full_name: bool) -> str:
     version = diff["version"]
     if diff["operation"] == "add":
         prefix = "+"
@@ -28,17 +28,20 @@ def _format_entry(diff: PackageDiff) -> str:
         prefix = "-"
         color = ANSI_RED
         version = ink(version, effects=ANSI_DIM)
-    name = repo_name(diff["full_name"])
+    if full_name:
+        name = diff["full_name"]
+    else:
+        name = repo_name(diff["full_name"])
     title = ink(f"{prefix} {name}", color=color)
     return f"{title} {version}"
 
 
-def report_diff(diff: List[PackageDiff]):
+def report_diff(diff: List[PackageDiff], full_name=False):
     """Prints in stdout diff of packages in a nice way"""
     groups = group_by_kind(diff)
     log = ""
     for kind, packages in groups.items():
         log += f"{_format_kind(kind)}\n"
         for package in packages:
-            log += f"{_format_entry(package)}\n"
+            log += f"{_format_entry(package, full_name)}\n"
     print(log, end="\r")
