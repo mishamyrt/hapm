@@ -13,10 +13,24 @@ generate a personal token and set it in the ${env} variable.
 Otherwise you will run into rate limit fairly quickly."""
     report_warning(message)
 
-def report_error(action: str, exception: Exception):
-    message = f"Error while {action}:\n"
-    message += ink(exception, ANSI_RED)
-    print(message)
+def report_wrong_format(location: str):
+    report_error(f"Wrong location format: '{location}'")
+    example = """Package Location can be specified in several formats.
+* Root or tag URL of a repository on GitHub.
+  - https://github.com/mishamyrt/myrt_desk_hass
+  - https://github.com/mishamyrt/myrt_desk_hass/releases/tag/v0.2.4
+* Package name with version separated by the @ symbol
+  - mishamyrt/myrt_desk_hass
+  - mishamyrt/myrt_desk_hass@v0.2.4
+If no version is specified, then latest will be used."""
+    report_warning(example)
+
+
+def report_exception(action: str, exception: Exception):
+    report_error(f"Error while {action}: {str(exception)}")
 
 def report_warning(text: str | int):
     print(ink(text, ANSI_YELLOW))
+
+def report_error(text: str | int):
+    print(ink(text, ANSI_RED))

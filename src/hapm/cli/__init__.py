@@ -9,24 +9,18 @@ from hapm.manifest import Manifest
 from hapm.report import (
     Progress,
     report_diff,
-    report_list,
     report_no_token,
+    report_packages,
     report_summary,
 )
 
-from .versions import updates
+from .versions import updates, versions
 
 progress = Progress()
 
-TOKEN_VAR = 'GITHUB_PAT'
-if TOKEN_VAR not in environ:
-    report_no_token(TOKEN_VAR)
-    GITHUB_TOKEN = None
-else:
-    GITHUB_TOKEN = environ[TOKEN_VAR]
-
 STORAGE_DIR = ".hapm"
 MANIFEST_PATH = "hapm.yaml"
+TOKEN_VAR = 'GITHUB_PAT'
 
 global_args(
     arg('--manifest', '-m', default=MANIFEST_PATH, help="Manifest path"),
@@ -64,12 +58,17 @@ def put(args, store: PackageManager):
 def list_packages(_, store: PackageManager):
     """Print current version of components."""
     packages = store.descriptions()
-    report_list(packages)
+    report_packages(packages)
 
 
 def prepare(args):
     """Creates HAPM context"""
-    return args, PackageManager(args.storage, GITHUB_TOKEN)
+    if TOKEN_VAR not in environ:
+        report_no_token(TOKEN_VAR)
+        token = None
+    else:
+        token = environ[TOKEN_VAR]
+    return args, PackageManager(args.storage, token)
 
 def start():
     """Application entrypoint"""

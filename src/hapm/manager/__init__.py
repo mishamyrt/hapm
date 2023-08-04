@@ -4,9 +4,9 @@ from os.path import isdir, join
 from shutil import rmtree
 from typing import Dict, List
 
-from github import Github
-
+from hapm.git import get_versions
 from hapm.integration import IntegrationPackage
+from hapm.manifest import PackageLocation
 from hapm.package import BasePackage, PackageDescription
 from hapm.plugin import PluginPackage
 from hapm.versions import is_newer
@@ -38,6 +38,10 @@ class PackageManager:
                 self._boot_from_lock()
         else:
             mkdir(self._path)
+
+    def get_versions(self, location: PackageLocation) -> List[str]:
+        """Returns package version by location"""
+        return get_versions(location["full_name"], self._api_token)
 
     def _boot_from_lock(self):
         descriptions = self._lock.load()

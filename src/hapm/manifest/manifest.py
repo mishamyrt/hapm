@@ -4,7 +4,7 @@ from typing import List
 from ruamel.yaml import safe_load
 
 from hapm.package import PackageDescription
-from hapm.report import report_error
+from hapm.report import report_exception
 
 from .category import parse_category
 
@@ -26,7 +26,6 @@ class Manifest:
         try:
             for key in raw:
                 self.values.extend(parse_category(raw, key))
-        except TypeError as e:
-            report_error("parsing manifest", e)
+        except TypeError as exception:
+            report_exception("parsing manifest", exception)
             exit(1)
-
