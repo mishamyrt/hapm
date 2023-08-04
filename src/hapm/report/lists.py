@@ -5,7 +5,6 @@ from typing import List
 
 from hapm.color import ANSI_DIM, ANSI_YELLOW, ink
 from hapm.package import PackageDescription
-from hapm.repository import repo_name
 
 from .utils import group_by_kind
 
@@ -15,9 +14,9 @@ def _format_kind(kind: str) -> str:
 
 
 def _format_package(package: PackageDescription) -> str:
-    name = repo_name(package["full_name"])
-    version = ink(package["version"], effects=ANSI_DIM)
-    return f"  {name} {version}"
+    name = package["full_name"]
+    version = ink(f"@{package['version']}", effects=ANSI_DIM)
+    return f"  {name}{version}"
 
 def _format_version(package: str, version: str) -> str:
     line = ink(f"- {package}@", effects=ANSI_DIM)
