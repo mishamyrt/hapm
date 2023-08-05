@@ -71,7 +71,8 @@ class PackageManager:
                     diff["operation"] = "switch"
             else:
                 diff["operation"] = "add"
-            diffs.append(diff)
+            if "operation" in diff:
+                diffs.append(diff)
         for (full_name, integration) in self._packages.items():
             try:
                 if update_full_names.index(full_name):
