@@ -2,21 +2,15 @@
 from argparse import BooleanOptionalAction
 from os import environ
 
-from arrrgs import arg, command, global_args, run
+from arrrgs import arg, global_args, run
 
 from hapm.manager import PackageManager
-from hapm.manifest import Manifest
-from hapm.report import (
-    Progress,
-    report_diff,
-    report_no_token,
-    report_packages,
-    report_summary,
-)
+from hapm.report import report_no_token
 
-from .install import install
-from .sync import sync
-from .versions import updates, versions
+# Commands
+from .export import export
+from .install import install, sync
+from .versions import list_packages, updates, versions
 
 STORAGE_DIR = ".hapm"
 MANIFEST_PATH = "hapm.yaml"
@@ -29,22 +23,6 @@ global_args(
         action=BooleanOptionalAction,
         help="Only print information. Do not make any changes to the files")
 )
-
-
-@command(
-    arg('path', default=None, help="Output path")
-)
-def put(args, store: PackageManager):
-    """Synchronizes local versions of components with the manifest."""
-    store.export(args.path)
-
-
-
-@command(name="list")
-def list_packages(_, store: PackageManager):
-    """Print current version of components."""
-    packages = store.descriptions()
-    report_packages(packages)
 
 
 def prepare(args):

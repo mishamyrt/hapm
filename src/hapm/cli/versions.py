@@ -1,4 +1,4 @@
-"""Update search function for the HAPM application"""
+"""Package versions related function for the HAPM application"""
 from argparse import BooleanOptionalAction
 
 from arrrgs import arg, command
@@ -8,6 +8,7 @@ from hapm.manifest import parse_location
 from hapm.report import (
     Progress,
     report_diff,
+    report_packages,
     report_versions,
     report_warning,
     report_wrong_format,
@@ -47,3 +48,10 @@ def versions(args, store: PackageManager):
     tags = store.get_versions(location)
     progress.stop()
     report_versions(location["full_name"], tags)
+
+
+@command(name="list")
+def list_packages(_, store: PackageManager):
+    """Print current version of components."""
+    packages = store.descriptions()
+    report_packages(packages)

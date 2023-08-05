@@ -1,4 +1,4 @@
-
+"""Update search function for the HAPM application"""
 from arrrgs import arg, command
 
 from hapm.manager import PACKAGE_HANDLERS, PackageManager
@@ -7,6 +7,11 @@ from hapm.report import report_exception, report_warning
 
 from .common import load_manifest, synchronize
 
+
+@command()
+def sync(args, store: PackageManager):
+    """Synchronizes local versions of components with the manifest."""
+    synchronize(args, store)
 
 @command(
     arg('url', default=None, help="Output path", nargs='+'),
