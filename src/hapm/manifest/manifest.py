@@ -37,6 +37,15 @@ class Manifest:
             "kind": kind
         })
 
+    def init(self, types: List[str]) -> None:
+        """Creates initial file"""
+        template = {}
+        for package_type in types:
+            template[package_type] = []
+        with open(self.path, "w", encoding="utf-8") as file:
+            dumper.dump(template, file)
+
+
     def dump(self) -> None:
         """Save manifest to file"""
         content = {}

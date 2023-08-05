@@ -39,6 +39,10 @@ class PackageManager:
         else:
             mkdir(self._path)
 
+    def supported_types(self) -> List[str]:
+        """Returns supported types"""
+        return list(PACKAGE_HANDLERS.keys())
+
     def get_versions(self, location: PackageLocation) -> List[str]:
         """Returns package version by location"""
         return get_versions(location["full_name"], self._api_token)

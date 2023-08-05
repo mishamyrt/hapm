@@ -2,9 +2,10 @@
 from argparse import BooleanOptionalAction
 from os import environ
 
-from arrrgs import arg, global_args, run
+from arrrgs import arg, command, global_args, run
 
 from hapm.manager import PackageManager
+from hapm.manifest import Manifest
 from hapm.report import report_no_token
 
 # Commands
@@ -23,6 +24,13 @@ global_args(
         action=BooleanOptionalAction,
         help="Only print information. Do not make any changes to the files")
 )
+
+@command()
+def init(args, store: PackageManager):
+    """Manifest creation"""
+    manifest = Manifest(args.manifest)
+    manifest.init(store.supported_types())
+
 
 
 def prepare(args):
