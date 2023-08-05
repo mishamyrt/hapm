@@ -59,6 +59,11 @@ class BasePackage:
         """Finds the latest available version"""
         versions = get_versions(self.full_name, self._api_token)
         return find_latest(versions, stable_only)
+    
+    def setup(self) -> None:
+        if self.version == "latest":
+            raise TypeError("version is unknown")
+        self.initialize()
 
 
     # Abstract methods to be implemented by all types of package handlers

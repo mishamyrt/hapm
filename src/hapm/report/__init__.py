@@ -3,6 +3,7 @@ from .diff import report_diff
 from .errors import (
     report_error,
     report_exception,
+    report_latest,
     report_no_token,
     report_warning,
     report_wrong_format,

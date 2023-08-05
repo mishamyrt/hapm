@@ -17,8 +17,6 @@ def parse_category(manifest: Dict[str, List[str]], key: str) -> List[PackageDesc
         location = parse_location(entry)
         if location["full_name"] is None:
             raise TypeError(f"Wrong entity: {entry}")
-        if location["version"] == "latest":
-            raise TypeError(f"Version is missing: {entry}")
         items.append({
             "full_name": location["full_name"],
             "version": location["version"],

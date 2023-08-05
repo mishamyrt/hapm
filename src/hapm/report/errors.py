@@ -1,5 +1,6 @@
 """HAPM CLI error reporter"""
 from __future__ import annotations
+from typing import List
 
 from hapm.color import ANSI_RED, ANSI_YELLOW, ink
 
@@ -25,6 +26,14 @@ def report_wrong_format(location: str):
 If no version is specified, then latest will be used."""
     report_warning(example)
 
+def report_latest(packages: List[str]):
+    """"""
+    message = "No versions are listed for some packages."
+    message += "\nThe latest available version will be retrieved and used."
+    for package in packages:
+        message += f"\n  {package}"
+    report_warning(message)
+    
 
 def report_exception(action: str, exception: Exception):
     report_error(f"Error while {action}: {str(exception)}")

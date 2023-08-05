@@ -6,10 +6,10 @@ from typing import Dict, List
 
 from hapm.git import get_versions
 from hapm.integration import IntegrationPackage
-from hapm.manifest import PackageLocation
+from hapm.manifest import Manifest, PackageLocation
 from hapm.package import BasePackage, PackageDescription
 from hapm.plugin import PluginPackage
-from hapm.versions import is_newer
+from hapm.versions import find_latest, is_newer
 
 from .diff import PackageDiff
 from .lockfile import Lockfile
@@ -52,12 +52,15 @@ class PackageManager:
                 description, self._path, self._api_token)
             self._packages[package.full_name] = package
 
-    def diff(self, update: List[PackageDescription]) -> List[PackageDiff]:
+    def diff(self, update: List[PackageDescription], stable_only=True) -> List[PackageDiff]:
         """Finds the difference between the current state and the list of packets received.
         Returns the modified package description"""
         update_full_names: List[str] = []
         diffs: List[PackageDiff] = []
         for description in update:
+            if description["version"] == "latest":
+                versions = get_versions(description["full_name"], self._api_token)
+                description["version"] = find_latest(versions, stable_only)
             full_name, version = description["full_name"], description["version"]
             update_full_names.append(full_name)
             diff: PackageDiff = description.copy()
@@ -89,16 +92,18 @@ class PackageManager:
         for diff in diffs:
             operation = diff["operation"]
             full_name = diff["full_name"]
+            version = diff["version"]
             if operation == "add":
                 package = PACKAGE_HANDLERS[diff["kind"]](
                     diff, self._path, self._api_token)
-                package.initialize()
+                package.setup()
                 self._packages[full_name] = package
             elif operation == "delete":
                 self._packages[full_name].destroy()
                 full_names_to_remove.append(full_name)
             else:
-                self._packages[full_name].switch(diff["version"])
+                package = self._packages[full_name]
+                package.switch(version)
         # Delete keys in a separate loop so as not to change the iterated list
         for full_name in full_names_to_remove:
             self._packages.pop(full_name, None)
@@ -117,6 +122,7 @@ class PackageManager:
             integration.export(path)
         for kind in kinds:
             PACKAGE_HANDLERS[kind].post_export(path)
+
 
     def updates(self, stable_only=True) -> List[PackageDiff]:
         """Searches for updates for packages, returns list of available updates."""

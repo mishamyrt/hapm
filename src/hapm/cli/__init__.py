@@ -14,9 +14,9 @@ from hapm.report import (
     report_summary,
 )
 
+from .install import install
+from .sync import sync
 from .versions import updates, versions
-
-progress = Progress()
 
 STORAGE_DIR = ".hapm"
 MANIFEST_PATH = "hapm.yaml"
@@ -29,21 +29,6 @@ global_args(
         action=BooleanOptionalAction,
         help="Only print information. Do not make any changes to the files")
 )
-
-@command()
-def sync(args, store: PackageManager):
-    """Synchronizes local versions of components with the manifest."""
-    manifest = Manifest(args.manifest)
-    manifest.load()
-    diff = store.diff(manifest.values)
-    report_diff(diff)
-    if args.dry is True:
-        return
-    if len(diff) > 0:
-        progress.start("Synchronizing the changes")
-        store.apply(diff)
-        progress.stop()
-    report_summary(diff)
 
 
 @command(
