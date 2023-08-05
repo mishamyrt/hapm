@@ -1,6 +1,5 @@
 """Package versions related function for the HAPM application"""
 import sys
-from argparse import BooleanOptionalAction
 
 from arrrgs import arg, command
 
@@ -15,11 +14,11 @@ from hapm.report import (
     report_wrong_format,
 )
 
+from .common import unstable_arg
+
 
 @command(
-    arg('--allow-unstable', '-u',
-        action=BooleanOptionalAction,
-        help="Removes the restriction to stable versions when searching for updates"),
+    unstable_arg,
 )
 def updates(args, store: PackageManager):
     """Prints available packages updates."""
