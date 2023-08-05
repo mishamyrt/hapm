@@ -5,7 +5,7 @@ VENV = . $(VENV_PATH)/bin/activate;
 NAME = $(shell uname -a)
 
 .PHONY: publish
-publish: clean $(DIST_PATH)
+publish: clean build
 	git tag "v$(VERSION)"
 	git push --tags
 	$(VENV) python3 -m twine upload --repository pypi dist/* -umishamyrt
