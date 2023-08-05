@@ -1,4 +1,5 @@
 """Package versions related function for the HAPM application"""
+import sys
 from argparse import BooleanOptionalAction
 
 from arrrgs import arg, command
@@ -42,7 +43,7 @@ def versions(args, store: PackageManager):
     location = parse_location(args.location)
     if location is None:
         report_wrong_format(args.location)
-        exit(1)
+        sys.exit(1)
     progress = Progress()
     progress.start("Looking for package versions")
     tags = store.get_versions(location)

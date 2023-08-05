@@ -1,13 +1,16 @@
 """HAPM manifest controller"""
+import sys
 from typing import List
 
-from ruamel.yaml import safe_load, dump, YAML
+from ruamel.yaml import YAML, safe_load
 
 from hapm.package import PackageDescription
 from hapm.report import report_exception
 
 from .category import parse_category
 
+dumper = YAML()
+dumper.indent(mapping=2, sequence=4, offset=2)
 
 class Manifest:
     """HAPM manifest controller"""
@@ -21,6 +24,7 @@ class Manifest:
         self._encoding = encoding
 
     def set(self, full_name: str, version: str, kind=None):
+        """Add or update package"""
         for (i, _) in enumerate(self.values):
             if self.values[i]["full_name"] == full_name:
                 self.values[i]["version"] = version
@@ -34,9 +38,8 @@ class Manifest:
         })
 
     def dump(self) -> None:
+        """Save manifest to file"""
         content = {}
-        dumper = YAML()
-        dumper.indent(mapping=2, sequence=4, offset=2)
         for package in self.values:
             full_name = package["full_name"]
             kind = package["kind"]
@@ -62,4 +65,4 @@ class Manifest:
                 self.values.extend(values)
         except TypeError as exception:
             report_exception("parsing manifest", exception)
-            exit(1)
+            sys.exit(1)

@@ -66,9 +66,7 @@ class PackageManager:
             diff: PackageDiff = description.copy()
             if full_name in self._packages:
                 current_version = self._packages[full_name].version
-                if current_version == version:
-                    continue
-                else:
+                if current_version != version:
                     diff["current_version"] = current_version
                     diff["operation"] = "switch"
             else:
