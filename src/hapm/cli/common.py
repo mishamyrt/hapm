@@ -15,8 +15,6 @@ def load_manifest(args) -> Manifest:
     """Loads manifest file"""
     manifest = Manifest(args.manifest)
     manifest.load()
-    if len(manifest.has_latest) > 0:
-        report_latest(manifest.has_latest)
     return manifest
 
 
@@ -24,7 +22,13 @@ def synchronize(args, store: PackageManager, stable_only=True, manifest=None):
     """Synchronizes local versions of components with the manifest."""
     if manifest is None:
         manifest = load_manifest(args)
+    progress = Progress()
+    if len(manifest.has_latest) > 0:
+        report_latest(manifest.has_latest)
+        progress.start("Search for the latest versions")
     diff = store.diff(manifest.values, stable_only)
+    if len(manifest.has_latest) > 0:
+        progress.stop()
     report_diff(diff)
     if args.dry is True:
         return
