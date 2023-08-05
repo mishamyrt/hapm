@@ -15,6 +15,7 @@ clean:
 	rm -rf *.egg-info
 	rm -rf build
 	rm -rf dist
+	rm -rf .ruff_cache
 
 .PHONY: build
 build:
@@ -31,7 +32,8 @@ install-venv:
 
 .PHONY: lint
 lint:
-	$(VENV) ruff check .
+	$(VENV) ruff check src/
+	$(VENV) pylint src/
 
 configure: requirements.txt
 	rm -rf $(VENV_PATH)

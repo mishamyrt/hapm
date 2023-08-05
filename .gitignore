@@ -11,6 +11,4 @@ __pycache__
 
 # Testing files
 .hapm/
-.hapm-custom/
-hapm.yaml
 export
