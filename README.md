@@ -19,22 +19,27 @@ The version specifies an existing tag or branch in the specified repository.
 A link may not have an https prefix, in which case it will be inserted automatically during the reading phase.
 
 ```yaml
----
 integrations:
   - github.com/mishamyrt/dohome_rgb@v0.3.0
   - github.com/mishamyrt/myrt_desk_hass@master
 ```
 
+## Initialize empty config
+
+```sh
+hapm init
+```
+
 ## Sync remote packages
 
 ```sh
-hapm
+hapm sync
 ```
 
 ## Export 
 
 ```sh
-hapm put <path>
+hapm export <path>
 ```
 
 ## List 
@@ -45,10 +50,14 @@ hapm list
 
 ## Add new package
 
-**not yet implemented**
+```sh
+hapm install -t integrations mishamyrt/assisted_pol@v0.2.4
+```
+
+## Update package
 
 ```sh
-hapm get -t integration https://github.com/AlexxIT/XiaomiGateway3
+hapm install mishamyrt/assisted_pol@v0.2.4
 ```
 
 ## Updates
