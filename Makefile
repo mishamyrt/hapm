@@ -39,6 +39,10 @@ configure: requirements.txt
 	rm -rf $(VENV_PATH)
 	make $(VENV_PATH)
 
+.PHONY: test
+test:
+	$(VENV) pytest -o log_cli=true -vv tests/*.py
+
 $(VENV_PATH):
 	python3 -m venv $(VENV_PATH)
 	$(VENV) pip install -r requirements.txt

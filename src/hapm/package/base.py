@@ -6,7 +6,7 @@ from os.path import join
 
 from hapm.git import get_versions
 from hapm.repository import repo_name
-from hapm.versions import find_latest
+from hapm.version import find_latest
 
 from .description import PackageDescription
 

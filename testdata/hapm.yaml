@@ -1,5 +1,6 @@
 integrations:
   - mishamyrt/dohome_rgb@v0.4.1
   - mishamyrt/myrt_desk_hass@v0.2.4
+  - RobertD502/home-assistant-petkit@0.1.12.4
 plugins:
   - PiotrMachowski/lovelace-xiaomi-vacuum-map-card@v2.2.2

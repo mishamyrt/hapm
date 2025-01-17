@@ -9,7 +9,7 @@ from hapm.integration import IntegrationPackage
 from hapm.manifest import Manifest, PackageLocation
 from hapm.package import BasePackage, PackageDescription
 from hapm.plugin import PluginPackage
-from hapm.versions import find_latest, is_newer
+from hapm.version import Version, find_latest
 
 from .diff import PackageDiff
 from .lockfile import Lockfile
@@ -131,15 +131,16 @@ class PackageManager:
         """Searches for updates for packages, returns list of available updates."""
         updates: List[PackageDiff] = []
         for (_, package) in self._packages.items():
-            latest_version = package.latest_version(stable_only)
-            if is_newer(package.version, latest_version):
+            latest = package.latest_version(stable_only)
+            if Version(latest) > Version(package.version):
                 updates.append({
                     "full_name": package.full_name,
                     "kind": package.kind,
-                    "version": latest_version,
+                    "version": latest,
                     "current_version": package.version,
                     "operation": "switch"
                 })
+
         return updates
 
     def descriptions(self) -> List[PackageDescription]:
