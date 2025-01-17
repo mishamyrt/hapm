@@ -50,7 +50,6 @@ def synchronize(args, store: PackageManager, stable_only=True, manifest=None):
         store.apply(diff)
         progress.stop()
     report_summary(diff)
-    manifest.dump()
 
 def get_token() -> str | None:
     """Returns token from environment variable or None if not set"""
