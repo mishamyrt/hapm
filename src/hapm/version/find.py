@@ -18,6 +18,5 @@ def find_latest(tags: list[str], stable_only: bool) -> Version:
     for version in versions:
         if not version.is_stable and stable_only:
             continue
-        if version > latest:
-            latest = version
+        latest = max(latest, version)
     return str(latest)
