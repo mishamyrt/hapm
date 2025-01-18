@@ -47,12 +47,15 @@ class IntegrationPackage(BasePackage):
             file.extractall(members=target_members, path=path)
         exported_components_path = join(path, components_path)
         component = listdir(exported_components_path)[0]
-        copytree(join(exported_components_path, component), join(path, FOLDER_NAME, component))
+        copytree(
+            join(exported_components_path, component),
+            join(path, FOLDER_NAME, component))
         rmtree(join(path, root))
 
     @staticmethod
     def pre_export(path: str):
-        """This method is called when you starting exporting packages of a certain kind"""
+        """This method is called when you starting
+        exporting packages of a certain kind"""
         mkdir(join(path, FOLDER_NAME))
 
     @staticmethod

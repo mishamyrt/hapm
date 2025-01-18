@@ -9,7 +9,8 @@ from hapm.package import PackageDescription
 
 
 class Lockfile:
-    """Represents an entity that manages a file with descriptions of current package versions"""
+    """Represents an entity that manages a file
+    with descriptions of current package versions"""
     _path: str
     _encoding: str
 

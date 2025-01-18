@@ -56,9 +56,14 @@ class PackageManager:
                 description, self._path, self._api_token)
             self._packages[package.full_name] = package
 
-    def diff(self, update: List[PackageDescription], stable_only=True) -> List[PackageDiff]:
-        """Finds the difference between the current state and the list of packets received.
-        Returns the modified package description"""
+    def diff(self,
+             update: List[PackageDescription],
+             stable_only=True) -> List[PackageDiff]:
+        """
+        Finds the difference between the current state
+        and the list of packets received.
+        Returns the modified package description
+        """
         update_full_names: List[str] = []
         diffs: List[PackageDiff] = []
         for description in update:

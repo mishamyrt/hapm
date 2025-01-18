@@ -83,8 +83,10 @@ class BasePackage:
 
     @staticmethod
     def pre_export(path: str):
-        """This method is called when you starting exporting packages of a certain kind"""
+        """This method is called when you starting
+        exporting packages of a certain kind"""
 
     @staticmethod
     def post_export(path: str):
-        """This method is called after you finish exporting packages of a certain kind"""
+        """This method is called after you finish
+        exporting packages of a certain kind"""

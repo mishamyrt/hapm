@@ -2,13 +2,14 @@
 import sys
 from typing import List
 
-from ruamel.yaml import YAML, safe_load
+from ruamel.yaml import YAML
 
 from hapm.package import PackageDescription
 from hapm.report import report_exception
 
 from .category import parse_category
 
+safe_yaml=YAML(typ='safe', pure=True)
 dumper = YAML()
 dumper.indent(mapping=2, sequence=4, offset=2)
 
@@ -64,7 +65,7 @@ class Manifest:
     def load(self) -> List[PackageDescription]:
         """Reads the manifest file and parses its contents"""
         with open(self.path, "r", encoding="utf-8") as stream:
-            raw = safe_load(stream)
+            raw = safe_yaml.load(stream)
         try:
             for key in raw:
                 values = parse_category(raw, key)

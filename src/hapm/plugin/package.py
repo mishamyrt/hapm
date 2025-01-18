@@ -42,7 +42,8 @@ class PluginPackage(BasePackage):
 
     @staticmethod
     def pre_export(path: str):
-        """This method is called when you starting exporting packages of a certain kind"""
+        """This method is called when you starting
+        exporting packages of a certain kind"""
         path_dir = Path(join(path, FOLDER_NAME))
         path_dir.mkdir(exist_ok=True, parents=True)
 

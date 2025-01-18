@@ -38,7 +38,8 @@ def _parse_suffix(suffix: str) -> SuffixSegments:
 def parse_version(version_expr: str) -> VersionParts:
     """
     Parses a version and returns its segments and type.
-    Parser designed to be fail-safe and attempts to parse the version as much as possible
+    Parser designed to be fail-safe and attempts
+    to parse the version as much as possible
     """
     if not version_expr:
         raise InvalidVersion("Version is empty")

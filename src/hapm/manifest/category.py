@@ -8,7 +8,10 @@ from hapm.package import PackageDescription
 from .location import parse_location
 
 
-def parse_category(manifest: Dict[str, List[str]], key: str) -> List[PackageDescription]:
+def parse_category(
+        manifest: Dict[str, List[str]],
+        key: str
+    ) -> List[PackageDescription]:
     """Parses the manifest, turning it into a list of packages"""
     if key not in manifest:
         raise TypeError(f"Key {key} is not found in repo")
