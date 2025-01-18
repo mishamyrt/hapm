@@ -1,4 +1,4 @@
-VERSION = 0.2.1
+VERSION = 0.3.0
 DIST_PATH = ./dist
 VENV_PATH = ./venv
 VENV = . $(VENV_PATH)/bin/activate;
@@ -6,9 +6,12 @@ NAME = $(shell uname -a)
 
 .PHONY: publish
 publish: clean build
+	$(VENV) python3 -m twine upload --repository pypi dist/*
+	git add Makefile
+	git commit -m "chore: release v$(VERSION)"
 	git tag "v$(VERSION)"
+	git push
 	git push --tags
-	$(VENV) python3 -m twine upload --repository pypi dist/* -umishamyrt
 
 .PHONY: clean
 clean:
