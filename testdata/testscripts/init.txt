@@ -1,0 +1,4 @@
+exec hapm --manifest hapm.yaml --storage .hapm init
+exists hapm.yaml
+grep '^integrations:' hapm.yaml
+grep '^plugins:' hapm.yaml

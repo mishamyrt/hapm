@@ -1,7 +1,4 @@
-VERSION = 0.3.0
-DIST_PATH = ./dist
-VENV_PATH = ./venv
-VENV = . $(VENV_PATH)/bin/activate;
+VERSION = 0.4.0
 NAME = $(shell uname -a)
 
 .PHONY: publish
@@ -15,42 +12,34 @@ publish: clean build
 
 .PHONY: clean
 clean:
-	rm -rf *.egg-info
 	rm -rf build
-	rm -rf dist
-	rm -rf .ruff_cache
 
 .PHONY: build
 build:
-	echo "$(VERSION)" > .version
-	$(VENV) python3 -m build
+	CGO_ENABLED=0 \
+		go build \
+			-ldflags "-s -w" \
+			-o build/hapm \
+			hapm.go
 
 .PHONY: install
-install: $(DIST_PATH)
-	pip3 install .
-
-.PHONY: install-venv
-install-venv:
-	$(VENV) pip install .
+install:
+	go install
 
 .PHONY: lint
 lint:
-	$(VENV) ruff check src/
-	$(VENV) pylint src/
-
-configure: requirements.txt
-	rm -rf $(VENV_PATH)
-	make $(VENV_PATH)
+	golangci-lint run ./...
+	revive -config ./revive.toml  ./...
 
 .PHONY: test
 test:
-	$(VENV) pytest -o log_cli=true -vv tests/*.py
+	@go test ./...
 
-$(VENV_PATH):
-	python3 -m venv $(VENV_PATH)
-	$(VENV) pip install -r requirements.txt
-
-$(CONFIG_PATH): config.json
-	mkdir -p $(CONFIG_DIR)
-	rm -f $(CONFIG_PATH)
-	cp config.json $(CONFIG_PATH)
+.PHONY: test-e2e
+test-e2e:
+	@go test \
+		-race \
+		-count=1 \
+		-timeout=30s \
+		-tags=e2e \
+		e2e_test.go

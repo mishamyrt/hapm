@@ -1,0 +1,22 @@
+env HAPM_GITHUB_API_BASE_URL=file://$WORK/fake/api
+env HAPM_GITHUB_WEB_BASE_URL=file://$WORK/fake/web
+
+exec hapm --manifest hapm.yaml --storage .hapm --dry sync
+stdout '\* bar'
+
+exec hapm --storage .hapm updates
+stdout 'foo/bar'
+stdout 'v1.1.0'
+
+exec hapm --storage .hapm versions foo/bar
+stdout 'foo/bar@'
+stdout 'v1.0.0'
+
+! exec hapm --storage .hapm versions bad
+stdout 'Wrong location format:'
+
+-- hapm.yaml --
+integrations:
+  - foo/bar@v1.1.0
+-- .hapm/_lock.json --
+[{"full_name":"foo/bar","kind":"integrations","version":"v1.0.0"}]

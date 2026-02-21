@@ -1,0 +1,7 @@
+exec hapm --manifest hapm.yaml --storage .hapm init
+exec hapm --manifest hapm.yaml --storage .hapm --dry install --type integrations foo/bar@v1.0.0
+stdout 'Integrations:'
+stdout '\+ bar'
+
+exec hapm --manifest hapm.yaml --storage .hapm --dry install foo/new@v1.0.0
+stdout '--type parameter is not specified'

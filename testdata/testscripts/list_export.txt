@@ -1,0 +1,17 @@
+mkdir .hapm
+cp fixtures/.hapm/_lock.json .hapm/_lock.json
+cp fixtures/.hapm/mishamyrt-dohome_rgb@v0.4.1.tar.gz .hapm/mishamyrt-dohome_rgb@v0.4.1.tar.gz
+cp fixtures/.hapm/mishamyrt-myrt_desk_hass@v0.2.4.tar.gz .hapm/mishamyrt-myrt_desk_hass@v0.2.4.tar.gz
+cp fixtures/.hapm/RobertD502-home-assistant-petkit@0.1.12.4.tar.gz .hapm/RobertD502-home-assistant-petkit@0.1.12.4.tar.gz
+cp fixtures/.hapm/PiotrMachowski-lovelace-xiaomi-vacuum-map-card@v2.2.2.js .hapm/PiotrMachowski-lovelace-xiaomi-vacuum-map-card@v2.2.2.js
+
+exec hapm --storage .hapm list
+stdout 'Integrations:'
+stdout 'PiotrMachowski/lovelace-xiaomi-vacuum-map-card'
+
+exec hapm --storage .hapm export export
+stdout 'Resources URL:'
+exists export/custom_components/dohome_rgb/manifest.json
+exists export/custom_components/myrt_desk/manifest.json
+exists export/custom_components/petkit/manifest.json
+exists export/www/custom_lovelace/lovelace-xiaomi-vacuum-map-card.js

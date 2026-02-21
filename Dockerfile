@@ -1,7 +1,26 @@
-FROM python:3.13-alpine
+# syntax=docker/dockerfile:1.7
 
-RUN apk add --no-cache git
+FROM golang:1.25-bookworm AS builder
+WORKDIR /src
 
-RUN pip install hapm==0.3.0
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+	go mod download
 
-CMD ["hapm"]
+COPY . .
+
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+RUN --mount=type=cache,target=/go/pkg/mod \
+	--mount=type=cache,target=/root/.cache/go-build \
+	CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+		go build \
+			-ldflags "-s -w" \
+			-o build/hapm \
+			hapm.go
+
+FROM gcr.io/distroless/static-debian12:nonroot
+WORKDIR /tmp
+COPY --from=builder /src/build/hapm /hapm
+
+ENTRYPOINT ["/hapm"]
