@@ -88,19 +88,24 @@ func (p *PluginPackage) downloadScript(version string) error {
 }
 
 func (p *PluginPackage) getScript(version string) ([]byte, error) {
-	pluginFile := p.base.name + ".js"
-	pluginFile = strings.TrimPrefix(pluginFile, "lovelace-")
-	content, err := p.base.client.GetTreeFile(p.base.fullName, version, "dist/"+pluginFile)
-	if err == nil && len(content) > 0 {
-		return content, nil
+	pluginName := strings.TrimPrefix(p.base.name, "lovelace-")
+	pluginFiles := []string{
+		pluginName + ".js",
+		pluginName + "-bundle.js",
 	}
-	content, err = p.base.client.GetTreeFile(p.base.fullName, version, pluginFile)
-	if err == nil && len(content) > 0 {
-		return content, nil
-	}
-	content, err = p.base.client.GetReleaseFile(p.base.fullName, version, pluginFile)
-	if err == nil && len(content) > 0 {
-		return content, nil
+	for _, pluginFile := range pluginFiles {
+		content, err := p.base.client.GetTreeFile(p.base.fullName, version, "dist/"+pluginFile)
+		if err == nil && len(content) > 0 {
+			return content, nil
+		}
+		content, err = p.base.client.GetTreeFile(p.base.fullName, version, pluginFile)
+		if err == nil && len(content) > 0 {
+			return content, nil
+		}
+		content, err = p.base.client.GetReleaseFile(p.base.fullName, version, pluginFile)
+		if err == nil && len(content) > 0 {
+			return content, nil
+		}
 	}
 	return nil, fmt.Errorf("plugin script is not found: %s@%s", p.base.fullName, version)
 }
