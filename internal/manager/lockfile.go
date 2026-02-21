@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	hapmpkg "github.com/mishamyrt/hapm/internal/package"
+	"github.com/mishamyrt/hapm/internal/hapkg"
 )
 
 type Lockfile struct {
@@ -20,7 +20,7 @@ func (l *Lockfile) Exists() bool {
 	return err == nil
 }
 
-func (l *Lockfile) Dump(descriptions []hapmpkg.PackageDescription) error {
+func (l *Lockfile) Dump(descriptions []hapkg.PackageDescription) error {
 	content, err := json.Marshal(descriptions)
 	if err != nil {
 		return err
@@ -28,15 +28,15 @@ func (l *Lockfile) Dump(descriptions []hapmpkg.PackageDescription) error {
 	return os.WriteFile(l.path, content, 0o644)
 }
 
-func (l *Lockfile) Load() ([]hapmpkg.PackageDescription, error) {
+func (l *Lockfile) Load() ([]hapkg.PackageDescription, error) {
 	content, err := os.ReadFile(l.path)
 	if err != nil {
 		return nil, err
 	}
 	if len(content) == 0 {
-		return []hapmpkg.PackageDescription{}, nil
+		return []hapkg.PackageDescription{}, nil
 	}
-	items := []hapmpkg.PackageDescription{}
+	items := []hapkg.PackageDescription{}
 	if err := json.Unmarshal(content, &items); err != nil {
 		return nil, err
 	}

@@ -1,19 +1,15 @@
-package hapmpkg
+package hapkg
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
-
-	fatihcolor "github.com/fatih/color"
 )
 
 const PluginKind = "plugins"
 
 const pluginFolderName = "www/custom_lovelace"
-const resourcesRedirectURL = "https://my.home-assistant.io/redirect/lovelace_resources/"
 
 type PluginPackage struct {
 	base BasePackage
@@ -63,20 +59,16 @@ func PluginPreExport(path string) error {
 	return os.MkdirAll(filepath.Join(path, pluginFolderName), 0o755)
 }
 
-func PluginPostExport(path string, out io.Writer) error {
-	heading := "To connect JS plugins, they must be specified on the Lovelace resources.\n" +
-		"Make sure those links are there:"
-	_, _ = fmt.Fprintln(out, fatihcolor.New(fatihcolor.FgYellow).Sprint(heading))
+func PluginPostExport(path string) ([]string, error) {
 	entries, err := os.ReadDir(filepath.Join(path, pluginFolderName))
 	if err != nil {
-		return err
+		return nil, err
 	}
-	prefix := fatihcolor.New(fatihcolor.Faint).Sprint("*")
-	for _, entry := range entries {
-		_, _ = fmt.Fprintf(out, "%s /local/custom_lovelace/%s\n", prefix, entry.Name())
+	names := make([]string, len(entries))
+	for i, e := range entries {
+		names[i] = e.Name()
 	}
-	_, _ = fmt.Fprintln(out, fatihcolor.New(fatihcolor.Faint).Sprint("Resources URL: "+resourcesRedirectURL))
-	return nil
+	return names, nil
 }
 
 func (p *PluginPackage) downloadScript(version string) error {

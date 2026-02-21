@@ -6,16 +6,16 @@ import (
 	"testing"
 
 	"github.com/mishamyrt/hapm/internal/manager"
-	hapmpkg "github.com/mishamyrt/hapm/internal/package"
+	"github.com/mishamyrt/hapm/internal/hapkg"
 )
 
 func TestReporterDiffAndSummary(t *testing.T) {
 	out := &bytes.Buffer{}
 	r := New(out)
 	diffs := []manager.PackageDiff{
-		{PackageDescription: hapmpkg.PackageDescription{FullName: "foo/new", Kind: "integrations", Version: "v1.0.0"}, Operation: "add"},
-		{PackageDescription: hapmpkg.PackageDescription{FullName: "foo/old", Kind: "integrations", Version: "v2.0.0"}, Operation: "switch", CurrentVersion: "v1.0.0"},
-		{PackageDescription: hapmpkg.PackageDescription{FullName: "foo/drop", Kind: "integrations", Version: "v1.0.0"}, Operation: "delete"},
+		{PackageDescription: hapkg.PackageDescription{FullName: "foo/new", Kind: "integrations", Version: "v1.0.0"}, Operation: "add"},
+		{PackageDescription: hapkg.PackageDescription{FullName: "foo/old", Kind: "integrations", Version: "v2.0.0"}, Operation: "switch", CurrentVersion: "v1.0.0"},
+		{PackageDescription: hapkg.PackageDescription{FullName: "foo/drop", Kind: "integrations", Version: "v1.0.0"}, Operation: "delete"},
 	}
 	r.Diff(diffs, false, false)
 	r.Summary(diffs)

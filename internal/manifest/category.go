@@ -3,10 +3,10 @@ package manifest
 import (
 	"fmt"
 
-	hapmpkg "github.com/mishamyrt/hapm/internal/package"
+	"github.com/mishamyrt/hapm/internal/hapkg"
 )
 
-func ParseCategory(manifest map[string]any, key string) ([]hapmpkg.PackageDescription, error) {
+func ParseCategory(manifest map[string]any, key string) ([]hapkg.PackageDescription, error) {
 	value, ok := manifest[key]
 	if !ok {
 		return nil, fmt.Errorf("key %s is not found in repo", key)
@@ -15,7 +15,7 @@ func ParseCategory(manifest map[string]any, key string) ([]hapmpkg.PackageDescri
 	if !ok {
 		return nil, fmt.Errorf("category %s must be a list", key)
 	}
-	items := make([]hapmpkg.PackageDescription, 0, len(entries))
+	items := make([]hapkg.PackageDescription, 0, len(entries))
 	for _, entry := range entries {
 		item, ok := entry.(string)
 		if !ok {
@@ -25,7 +25,7 @@ func ParseCategory(manifest map[string]any, key string) ([]hapmpkg.PackageDescri
 		if !ok || location.FullName == "" {
 			return nil, fmt.Errorf("wrong entity: %s", item)
 		}
-		items = append(items, hapmpkg.PackageDescription{
+		items = append(items, hapkg.PackageDescription{
 			FullName: location.FullName,
 			Version:  location.Version,
 			Kind:     key,

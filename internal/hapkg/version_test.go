@@ -1,4 +1,4 @@
-package hapmpkg
+package hapkg
 
 import "testing"
 

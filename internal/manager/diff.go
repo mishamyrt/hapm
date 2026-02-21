@@ -1,9 +1,9 @@
 package manager
 
-import hapmpkg "github.com/mishamyrt/hapm/internal/package"
+import "github.com/mishamyrt/hapm/internal/hapkg"
 
 type PackageDiff struct {
-	hapmpkg.PackageDescription
+	hapkg.PackageDescription
 	Operation      string `json:"operation"`
 	CurrentVersion string `json:"current_version,omitempty"`
 }

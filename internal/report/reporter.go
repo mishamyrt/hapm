@@ -9,10 +9,9 @@ import (
 	"sync"
 	"time"
 
-	fatihcolor "github.com/fatih/color"
+	"github.com/fatih/color"
+	"github.com/mishamyrt/hapm/internal/hapkg"
 	"github.com/mishamyrt/hapm/internal/manager"
-	hapmpkg "github.com/mishamyrt/hapm/internal/package"
-	"github.com/mishamyrt/hapm/internal/repository"
 )
 
 const tokenGenerateLink = "https://github.com/settings/tokens"
@@ -67,11 +66,15 @@ func (r Reporter) Exception(action string, err error) {
 }
 
 func (r Reporter) Warning(text string) {
-	_, _ = fmt.Fprintln(r.out, paint(text, fatihcolor.FgYellow))
+	_, _ = fmt.Fprintln(r.out, paint(text, color.FgYellow))
 }
 
 func (r Reporter) Error(text string) {
-	_, _ = fmt.Fprintln(r.out, paint(text, fatihcolor.FgRed))
+	_, _ = fmt.Fprintln(r.out, paint(text, color.FgRed))
+}
+
+func (r Reporter) UpToDate() {
+	_, _ = fmt.Fprintln(r.out, "All packages are up to date")
 }
 
 func (r Reporter) Diff(diff []manager.PackageDiff, fullName bool, updatesOnly bool) {
@@ -95,7 +98,7 @@ func (r Reporter) Diff(diff []manager.PackageDiff, fullName bool, updatesOnly bo
 	_, _ = fmt.Fprint(r.out, builder.String()+"\r")
 }
 
-func (r Reporter) Packages(packages []hapmpkg.PackageDescription) {
+func (r Reporter) Packages(packages []hapkg.PackageDescription) {
 	groups := groupPackagesByKind(packages)
 	keys := make([]string, 0, len(groups))
 	for kind := range groups {
@@ -140,15 +143,31 @@ func (r Reporter) Summary(diff []manager.PackageDiff) {
 	}
 	parts := make([]string, 0)
 	if adds > 0 {
-		parts = append(parts, fmt.Sprintf("installed %s", paint(adds, fatihcolor.FgHiCyan)))
+		parts = append(parts, fmt.Sprintf("installed %s", paint(adds, color.FgHiCyan)))
 	}
 	if deletes > 0 {
-		parts = append(parts, fmt.Sprintf("removed %s", paint(deletes, fatihcolor.FgHiCyan)))
+		parts = append(parts, fmt.Sprintf("removed %s", paint(deletes, color.FgHiCyan)))
 	}
 	if switches > 0 {
-		parts = append(parts, fmt.Sprintf("switched %s", paint(switches, fatihcolor.FgHiCyan)))
+		parts = append(parts, fmt.Sprintf("switched %s", paint(switches, color.FgHiCyan)))
 	}
 	_, _ = fmt.Fprintf(r.out, "\nDone: %s\n", strings.Join(parts, ", "))
+}
+
+const resourcesRedirectURL = "https://my.home-assistant.io/redirect/lovelace_resources/"
+
+func (r Reporter) PluginExportHint(files []string) {
+	if len(files) == 0 {
+		return
+	}
+	heading := "To connect JS plugins, they must be specified on the Lovelace resources.\n" +
+		"Make sure those links are there:"
+	_, _ = fmt.Fprintln(r.out, paint(heading, color.FgYellow))
+	prefix := paint("*", color.Faint)
+	for _, file := range files {
+		_, _ = fmt.Fprintf(r.out, "%s /local/custom_lovelace/%s\n", prefix, file)
+	}
+	_, _ = fmt.Fprintln(r.out, paint("Resources URL: "+resourcesRedirectURL, color.Faint))
 }
 
 type Progress struct {
@@ -242,38 +261,38 @@ func (p *Progress) show() {
 
 func formatKind(kind string) string {
 	if kind == "" {
-		return paint(":", fatihcolor.Faint)
+		return paint(":", color.Faint)
 	}
 	label := strings.ToUpper(kind[:1]) + kind[1:] + ":"
-	return paint(label, fatihcolor.Faint)
+	return paint(label, color.Faint)
 }
 
 func formatUpdate(diff manager.PackageDiff) string {
-	nextVersion := paint(diff.Version, fatihcolor.FgYellow)
-	currentVersion := paint("("+diff.CurrentVersion+")", fatihcolor.Faint)
-	delimiter := paint("@", fatihcolor.Faint)
+	nextVersion := paint(diff.Version, color.FgYellow)
+	currentVersion := paint("("+diff.CurrentVersion+")", color.Faint)
+	delimiter := paint("@", color.Faint)
 	return diff.FullName + delimiter + nextVersion + " " + currentVersion
 }
 
 func formatEntry(diff manager.PackageDiff, fullName bool) string {
-	var textColor fatihcolor.Attribute
+	var textColor color.Attribute
 	versionStr := diff.Version
 	prefix := ""
 	switch diff.Operation {
 	case "add":
 		prefix = "+"
-		textColor = fatihcolor.FgGreen
-		versionStr = paint(versionStr, fatihcolor.Faint)
+		textColor = color.FgGreen
+		versionStr = paint(versionStr, color.Faint)
 	case "switch":
 		prefix = "*"
-		textColor = fatihcolor.FgYellow
-		versionStr = paint(diff.CurrentVersion, fatihcolor.Faint) + " → " + diff.Version
+		textColor = color.FgYellow
+		versionStr = paint(diff.CurrentVersion, color.Faint) + " → " + diff.Version
 	default:
 		prefix = "-"
-		textColor = fatihcolor.FgRed
-		versionStr = paint(versionStr, fatihcolor.Faint)
+		textColor = color.FgRed
+		versionStr = paint(versionStr, color.Faint)
 	}
-	name := repository.RepoName(diff.FullName)
+	name := diff.PackageDescription.ShortName()
 	if fullName {
 		name = diff.FullName
 	}
@@ -281,22 +300,22 @@ func formatEntry(diff manager.PackageDiff, fullName bool) string {
 	return title + "@" + versionStr
 }
 
-func formatPackage(pkg hapmpkg.PackageDescription) string {
-	version := paint("@"+pkg.Version, fatihcolor.Faint)
+func formatPackage(pkg hapkg.PackageDescription) string {
+	version := paint("@"+pkg.Version, color.Faint)
 	return "  " + pkg.FullName + version
 }
 
 func formatVersion(pkg string, version string) string {
-	line := paint("- "+pkg+"@", fatihcolor.Faint)
-	line += paint(version, fatihcolor.FgYellow)
+	line := paint("- "+pkg+"@", color.Faint)
+	line += paint(version, color.FgYellow)
 	return line
 }
 
-func paint(value any, attrs ...fatihcolor.Attribute) string {
+func paint(value any, attrs ...color.Attribute) string {
 	if len(attrs) == 0 {
 		return fmt.Sprint(value)
 	}
-	return fatihcolor.New(attrs...).Sprint(value)
+	return color.New(attrs...).Sprint(value)
 }
 
 func groupDiffByKind(packages []manager.PackageDiff) map[string][]manager.PackageDiff {
@@ -307,8 +326,8 @@ func groupDiffByKind(packages []manager.PackageDiff) map[string][]manager.Packag
 	return groups
 }
 
-func groupPackagesByKind(packages []hapmpkg.PackageDescription) map[string][]hapmpkg.PackageDescription {
-	groups := map[string][]hapmpkg.PackageDescription{}
+func groupPackagesByKind(packages []hapkg.PackageDescription) map[string][]hapkg.PackageDescription {
+	groups := map[string][]hapkg.PackageDescription{}
 	for _, pkg := range packages {
 		groups[pkg.Kind] = append(groups[pkg.Kind], pkg)
 	}

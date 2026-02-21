@@ -9,7 +9,7 @@ import (
 )
 
 func (a *App) newManager() (*manager.PackageManager, error) {
-	store, err := manager.New(a.globals.Storage, a.token(), a.out)
+	store, err := manager.New(a.globals.Storage, a.token())
 	if err != nil {
 		return nil, a.handledError("creating package manager", err)
 	}
@@ -93,7 +93,7 @@ func (a *App) PrintUpdates(opts UpdatesOptions) error {
 		return a.handledError("looking for package updates", err)
 	}
 	if len(diff) == 0 {
-		_, _ = fmt.Fprintln(a.reporter.Out(), "All packages is up to date")
+		a.reporter.UpToDate()
 		return nil
 	}
 	a.reporter.Diff(diff, true, true)
@@ -145,8 +145,12 @@ func (a *App) Export(entries []string) error {
 	if len(entries) != 1 {
 		return a.handledMessage("export requires output path")
 	}
-	if err := store.Export(entries[0]); err != nil {
+	result, err := store.Export(entries[0])
+	if err != nil {
 		return a.handledError("exporting packages", err)
+	}
+	if files, ok := result.PostExportFiles["plugins"]; ok {
+		a.reporter.PluginExportHint(files)
 	}
 	return nil
 }

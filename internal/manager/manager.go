@@ -3,15 +3,14 @@ package manager
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"sync"
 
-	"github.com/mishamyrt/hapm/internal/git"
+	"github.com/mishamyrt/hapm/internal/github"
 	"github.com/mishamyrt/hapm/internal/manifest"
-	hapmpkg "github.com/mishamyrt/hapm/internal/package"
+	"github.com/mishamyrt/hapm/internal/hapkg"
 )
 
 const maxApplyConcurrency = 20
@@ -19,33 +18,25 @@ const maxApplyConcurrency = 20
 type PackageManager struct {
 	path     string
 	lock     *Lockfile
-	client   hapmpkg.GitClient
-	registry hapmpkg.Registry
-	packages map[string]hapmpkg.Package
-	out      io.Writer
+	client   hapkg.GitClient
+	registry Registry
+	packages map[string]hapkg.Package
 }
 
-func New(path string, token string, out io.Writer) (*PackageManager, error) {
-	if out == nil {
-		out = os.Stdout
-	}
-	return NewWith(path, git.NewClient(token), hapmpkg.DefaultRegistry(), "_lock.json", out)
+func New(path string, token string) (*PackageManager, error) {
+	return NewWith(path, github.NewClient(token), DefaultRegistry(), "_lock.json")
 }
 
-func NewWith(path string, client hapmpkg.GitClient, registry hapmpkg.Registry, lockfileName string, out io.Writer) (*PackageManager, error) {
+func NewWith(path string, client hapkg.GitClient, registry Registry, lockfileName string) (*PackageManager, error) {
 	if lockfileName == "" {
 		lockfileName = "_lock.json"
-	}
-	if out == nil {
-		out = os.Stdout
 	}
 	manager := &PackageManager{
 		path:     path,
 		lock:     NewLockfile(filepath.Join(path, lockfileName)),
 		client:   client,
 		registry: registry,
-		packages: map[string]hapmpkg.Package{},
-		out:      out,
+		packages: map[string]hapkg.Package{},
 	}
 	if stat, err := os.Stat(path); err == nil && stat.IsDir() {
 		if manager.lock.Exists() {
@@ -87,7 +78,7 @@ func (m *PackageManager) bootFromLock() error {
 	return nil
 }
 
-func (m *PackageManager) Diff(update []hapmpkg.PackageDescription, stableOnly bool) ([]PackageDiff, error) {
+func (m *PackageManager) Diff(update []hapkg.PackageDescription, stableOnly bool) ([]PackageDiff, error) {
 	updateFullNames := map[string]struct{}{}
 	diffs := make([]PackageDiff, 0)
 
@@ -98,7 +89,7 @@ func (m *PackageManager) Diff(update []hapmpkg.PackageDescription, stableOnly bo
 			if err != nil {
 				return nil, err
 			}
-			current.Version = hapmpkg.FindLatestVersion(versions, stableOnly)
+			current.Version = hapkg.FindLatestVersion(versions, stableOnly)
 		}
 		updateFullNames[current.FullName] = struct{}{}
 		diff := PackageDiff{PackageDescription: current}
@@ -130,14 +121,14 @@ func (m *PackageManager) Apply(diffs []PackageDiff) error {
 	type applyJob struct {
 		index       int
 		diff        PackageDiff
-		pkg         hapmpkg.Package
-		constructor hapmpkg.Constructor
+		pkg         hapkg.Package
+		constructor Constructor
 	}
 	type applyResult struct {
 		index     int
 		operation string
 		fullName  string
-		pkg       hapmpkg.Package
+		pkg       hapkg.Package
 		err       error
 	}
 
@@ -272,27 +263,31 @@ func (m *PackageManager) Apply(diffs []PackageDiff) error {
 	return m.lock.Dump(m.Descriptions())
 }
 
-func (m *PackageManager) Export(path string) error {
+type ExportResult struct {
+	PostExportFiles map[string][]string
+}
+
+func (m *PackageManager) Export(path string) (*ExportResult, error) {
 	if stat, err := os.Stat(path); err == nil && stat.IsDir() {
 		if err := os.RemoveAll(path); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	if err := os.MkdirAll(path, 0o755); err != nil {
-		return err
+		return nil, err
 	}
 	kindsUsed := map[string]bool{}
 	for _, pkg := range m.packages {
 		if !kindsUsed[pkg.Kind()] {
 			if hook, ok := m.registry.PreExport[pkg.Kind()]; ok {
 				if err := hook(path); err != nil {
-					return err
+					return nil, err
 				}
 			}
 			kindsUsed[pkg.Kind()] = true
 		}
 		if err := pkg.Export(path); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	kinds := make([]string, 0, len(kindsUsed))
@@ -300,14 +295,19 @@ func (m *PackageManager) Export(path string) error {
 		kinds = append(kinds, kind)
 	}
 	sort.Strings(kinds)
+	result := &ExportResult{PostExportFiles: map[string][]string{}}
 	for _, kind := range kinds {
 		if hook, ok := m.registry.PostExport[kind]; ok {
-			if err := hook(path, m.out); err != nil {
-				return err
+			files, err := hook(path)
+			if err != nil {
+				return nil, err
+			}
+			if len(files) > 0 {
+				result.PostExportFiles[kind] = files
 			}
 		}
 	}
-	return nil
+	return result, nil
 }
 
 func (m *PackageManager) Updates(stableOnly bool) ([]PackageDiff, error) {
@@ -317,17 +317,17 @@ func (m *PackageManager) Updates(stableOnly bool) ([]PackageDiff, error) {
 		if err != nil {
 			return nil, err
 		}
-		latestVersion, err := hapmpkg.NewVersion(latest)
+		latestVersion, err := hapkg.NewVersion(latest)
 		if err != nil {
 			continue
 		}
-		currentVersion, err := hapmpkg.NewVersion(pkg.Version())
+		currentVersion, err := hapkg.NewVersion(pkg.Version())
 		if err != nil {
 			continue
 		}
 		if latestVersion.Compare(currentVersion) > 0 {
 			updates = append(updates, PackageDiff{
-				PackageDescription: hapmpkg.PackageDescription{FullName: pkg.FullName(), Kind: pkg.Kind(), Version: latest},
+				PackageDescription: hapkg.PackageDescription{FullName: pkg.FullName(), Kind: pkg.Kind(), Version: latest},
 				CurrentVersion:     pkg.Version(),
 				Operation:          "switch",
 			})
@@ -336,8 +336,8 @@ func (m *PackageManager) Updates(stableOnly bool) ([]PackageDiff, error) {
 	return updates, nil
 }
 
-func (m *PackageManager) Descriptions() []hapmpkg.PackageDescription {
-	descriptions := make([]hapmpkg.PackageDescription, 0, len(m.packages))
+func (m *PackageManager) Descriptions() []hapkg.PackageDescription {
+	descriptions := make([]hapkg.PackageDescription, 0, len(m.packages))
 	for _, pkg := range m.packages {
 		descriptions = append(descriptions, pkg.Description())
 	}

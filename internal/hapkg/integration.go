@@ -1,4 +1,4 @@
-package hapmpkg
+package hapkg
 
 import (
 	"archive/tar"
@@ -124,6 +124,6 @@ func IntegrationPreExport(path string) error {
 	return os.Mkdir(filepath.Join(path, integrationFolderName), 0o755)
 }
 
-func IntegrationPostExport(_ string, _ io.Writer) error {
-	return nil
+func IntegrationPostExport(_ string) ([]string, error) {
+	return nil, nil
 }

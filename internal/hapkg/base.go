@@ -1,12 +1,10 @@
-package hapmpkg
+package hapkg
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/mishamyrt/hapm/internal/repository"
 )
 
 type GitClient interface {
@@ -45,7 +43,7 @@ func newBasePackage(description PackageDescription, rootPath string, extension s
 		fullName:  description.FullName,
 		version:   description.Version,
 		basePath:  filepath.Join(rootPath, strings.ReplaceAll(description.FullName, "/", "-")),
-		name:      repository.RepoName(description.FullName),
+		name:      description.ShortName(),
 		client:    client,
 	}
 }

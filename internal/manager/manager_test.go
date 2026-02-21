@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	hapmpkg "github.com/mishamyrt/hapm/internal/package"
+	"github.com/mishamyrt/hapm/internal/hapkg"
 )
 
 type fakeClient struct {
@@ -40,7 +39,7 @@ func (f fakeClient) GetTarball(string, string) ([]byte, error) {
 }
 
 type fakePackage struct {
-	desc   hapmpkg.PackageDescription
+	desc   hapkg.PackageDescription
 	root   string
 	latest string
 
@@ -49,7 +48,7 @@ type fakePackage struct {
 	destroyFn func(*fakePackage) error
 }
 
-func (p *fakePackage) Description() hapmpkg.PackageDescription { return p.desc }
+func (p *fakePackage) Description() hapkg.PackageDescription { return p.desc }
 func (p *fakePackage) FullName() string                        { return p.desc.FullName }
 func (p *fakePackage) Version() string                         { return p.desc.Version }
 func (p *fakePackage) Kind() string                            { return p.desc.Kind }
@@ -102,7 +101,7 @@ func (p *fakePackage) filePath(version string) string {
 func TestLockfileRoundTrip(t *testing.T) {
 	tmp := t.TempDir()
 	lock := NewLockfile(filepath.Join(tmp, "_lock.json"))
-	descriptions := []hapmpkg.PackageDescription{{FullName: "foo/bar", Version: "v1.0.0", Kind: "integrations"}}
+	descriptions := []hapkg.PackageDescription{{FullName: "foo/bar", Version: "v1.0.0", Kind: "integrations"}}
 	if err := lock.Dump(descriptions); err != nil {
 		t.Fatal(err)
 	}
@@ -117,11 +116,10 @@ func TestLockfileRoundTrip(t *testing.T) {
 
 func TestManagerDiffApplyUpdatesAndExport(t *testing.T) {
 	tmp := t.TempDir()
-	out := &bytes.Buffer{}
 	latestByName := map[string]string{"foo/bar": "v2.0.0"}
-	registry := hapmpkg.Registry{
-		Constructors: map[string]hapmpkg.Constructor{
-			"integrations": func(description hapmpkg.PackageDescription, rootPath string, _ hapmpkg.GitClient) hapmpkg.Package {
+	registry := Registry{
+		Constructors: map[string]Constructor{
+			"integrations": func(description hapkg.PackageDescription, rootPath string, _ hapkg.GitClient) hapkg.Package {
 				return &fakePackage{desc: description, root: rootPath, latest: latestByName[description.FullName]}
 			},
 		},
@@ -130,20 +128,19 @@ func TestManagerDiffApplyUpdatesAndExport(t *testing.T) {
 				return os.MkdirAll(filepath.Join(path, "integrations"), 0o755)
 			},
 		},
-		PostExport: map[string]func(path string, out io.Writer) error{
-			"integrations": func(_ string, out io.Writer) error {
-				_, _ = out.Write([]byte("post-export\n"))
-				return nil
+		PostExport: map[string]func(path string) ([]string, error){
+			"integrations": func(_ string) ([]string, error) {
+				return []string{"foo-bar.txt"}, nil
 			},
 		},
 	}
 
-	manager, err := NewWith(tmp, fakeClient{versions: map[string][]string{"foo/bar": {"v1.0.0", "v1.2.0"}}}, registry, "_lock.json", out)
+	manager, err := NewWith(tmp, fakeClient{versions: map[string][]string{"foo/bar": {"v1.0.0", "v1.2.0"}}}, registry, "_lock.json")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	update := []hapmpkg.PackageDescription{{FullName: "foo/bar", Version: "latest", Kind: "integrations"}}
+	update := []hapkg.PackageDescription{{FullName: "foo/bar", Version: "latest", Kind: "integrations"}}
 	diff, err := manager.Diff(update, true)
 	if err != nil {
 		t.Fatal(err)
@@ -169,17 +166,18 @@ func TestManagerDiffApplyUpdatesAndExport(t *testing.T) {
 	}
 
 	exportPath := filepath.Join(tmp, "export")
-	if err := manager.Export(exportPath); err != nil {
+	result, err := manager.Export(exportPath)
+	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(filepath.Join(exportPath, "integrations", "foo-bar.txt")); err != nil {
 		t.Fatalf("missing export file: %v", err)
 	}
-	if !strings.Contains(out.String(), "post-export") {
-		t.Fatalf("missing post export output: %s", out.String())
+	if files, ok := result.PostExportFiles["integrations"]; !ok || len(files) != 1 || files[0] != "foo-bar.txt" {
+		t.Fatalf("unexpected post export files: %+v", result.PostExportFiles)
 	}
 
-	deleteDiff, err := manager.Diff([]hapmpkg.PackageDescription{}, true)
+	deleteDiff, err := manager.Diff([]hapkg.PackageDescription{}, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -196,9 +194,9 @@ func TestManagerApplyLimitsConcurrencyTo20(t *testing.T) {
 	active := 0
 	maxActive := 0
 
-	registry := hapmpkg.Registry{
-		Constructors: map[string]hapmpkg.Constructor{
-			"integrations": func(description hapmpkg.PackageDescription, rootPath string, _ hapmpkg.GitClient) hapmpkg.Package {
+	registry := Registry{
+		Constructors: map[string]Constructor{
+			"integrations": func(description hapkg.PackageDescription, rootPath string, _ hapkg.GitClient) hapkg.Package {
 				return &fakePackage{
 					desc: description,
 					root: rootPath,
@@ -223,7 +221,7 @@ func TestManagerApplyLimitsConcurrencyTo20(t *testing.T) {
 		},
 	}
 
-	manager, err := NewWith(tmp, fakeClient{}, registry, "_lock.json", &bytes.Buffer{})
+	manager, err := NewWith(tmp, fakeClient{}, registry, "_lock.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -231,7 +229,7 @@ func TestManagerApplyLimitsConcurrencyTo20(t *testing.T) {
 	diffs := make([]PackageDiff, 0, 30)
 	for i := 0; i < 30; i++ {
 		diffs = append(diffs, PackageDiff{
-			PackageDescription: hapmpkg.PackageDescription{
+			PackageDescription: hapkg.PackageDescription{
 				FullName: fmt.Sprintf("foo/pkg-%02d", i),
 				Kind:     "integrations",
 				Version:  "v1.0.0",
@@ -292,9 +290,9 @@ func TestManagerApplyCancelOnFirstError(t *testing.T) {
 	var releaseOnce sync.Once
 	var started atomic.Int32
 
-	registry := hapmpkg.Registry{
-		Constructors: map[string]hapmpkg.Constructor{
-			"integrations": func(description hapmpkg.PackageDescription, rootPath string, _ hapmpkg.GitClient) hapmpkg.Package {
+	registry := Registry{
+		Constructors: map[string]Constructor{
+			"integrations": func(description hapkg.PackageDescription, rootPath string, _ hapkg.GitClient) hapkg.Package {
 				return &fakePackage{
 					desc: description,
 					root: rootPath,
@@ -314,7 +312,7 @@ func TestManagerApplyCancelOnFirstError(t *testing.T) {
 		},
 	}
 
-	manager, err := NewWith(tmp, fakeClient{}, registry, "_lock.json", &bytes.Buffer{})
+	manager, err := NewWith(tmp, fakeClient{}, registry, "_lock.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -328,7 +326,7 @@ func TestManagerApplyCancelOnFirstError(t *testing.T) {
 	diffs := make([]PackageDiff, 0, 30)
 	for i := 0; i < 30; i++ {
 		diffs = append(diffs, PackageDiff{
-			PackageDescription: hapmpkg.PackageDescription{
+			PackageDescription: hapkg.PackageDescription{
 				FullName: fmt.Sprintf("foo/pkg-%02d", i),
 				Kind:     "integrations",
 				Version:  "v1.0.0",

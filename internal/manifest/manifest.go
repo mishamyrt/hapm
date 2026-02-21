@@ -5,18 +5,18 @@ import (
 	"os"
 	"sort"
 
-	hapmpkg "github.com/mishamyrt/hapm/internal/package"
+	"github.com/mishamyrt/hapm/internal/hapkg"
 	"gopkg.in/yaml.v3"
 )
 
 type Manifest struct {
 	Path      string
-	Values    []hapmpkg.PackageDescription
+	Values    []hapkg.PackageDescription
 	HasLatest []string
 }
 
 func New(path string) *Manifest {
-	return &Manifest{Path: path, Values: make([]hapmpkg.PackageDescription, 0), HasLatest: make([]string, 0)}
+	return &Manifest{Path: path, Values: make([]hapkg.PackageDescription, 0), HasLatest: make([]string, 0)}
 }
 
 func (m *Manifest) Set(fullName string, version string, kind string) error {
@@ -29,7 +29,7 @@ func (m *Manifest) Set(fullName string, version string, kind string) error {
 	if kind == "" {
 		return fmt.Errorf("package type is not declared")
 	}
-	m.Values = append(m.Values, hapmpkg.PackageDescription{FullName: fullName, Version: version, Kind: kind})
+	m.Values = append(m.Values, hapkg.PackageDescription{FullName: fullName, Version: version, Kind: kind})
 	return nil
 }
 
