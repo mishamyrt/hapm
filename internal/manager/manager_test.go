@@ -3,11 +3,15 @@ package manager
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	hapmpkg "github.com/mishamyrt/hapm/internal/package"
 )
@@ -39,6 +43,10 @@ type fakePackage struct {
 	desc   hapmpkg.PackageDescription
 	root   string
 	latest string
+
+	setupFn   func(*fakePackage) error
+	switchFn  func(*fakePackage, string) error
+	destroyFn func(*fakePackage) error
 }
 
 func (p *fakePackage) Description() hapmpkg.PackageDescription { return p.desc }
@@ -47,10 +55,16 @@ func (p *fakePackage) Version() string                         { return p.desc.V
 func (p *fakePackage) Kind() string                            { return p.desc.Kind }
 
 func (p *fakePackage) Setup() error {
+	if p.setupFn != nil {
+		return p.setupFn(p)
+	}
 	return os.WriteFile(p.filePath(p.desc.Version), []byte(p.desc.Version), 0o644)
 }
 
 func (p *fakePackage) Switch(version string) error {
+	if p.switchFn != nil {
+		return p.switchFn(p, version)
+	}
 	if err := os.WriteFile(p.filePath(version), []byte(version), 0o644); err != nil {
 		return err
 	}
@@ -62,6 +76,9 @@ func (p *fakePackage) Switch(version string) error {
 }
 
 func (p *fakePackage) Destroy() error {
+	if p.destroyFn != nil {
+		return p.destroyFn(p)
+	}
 	return os.Remove(p.filePath(p.desc.Version))
 }
 
@@ -168,5 +185,172 @@ func TestManagerDiffApplyUpdatesAndExport(t *testing.T) {
 	}
 	if len(deleteDiff) != 1 || deleteDiff[0].Operation != "delete" {
 		t.Fatalf("unexpected delete diff: %+v", deleteDiff)
+	}
+}
+
+func TestManagerApplyLimitsConcurrencyTo20(t *testing.T) {
+	tmp := t.TempDir()
+	started := make(chan struct{}, 64)
+	release := make(chan struct{})
+	var mu sync.Mutex
+	active := 0
+	maxActive := 0
+
+	registry := hapmpkg.Registry{
+		Constructors: map[string]hapmpkg.Constructor{
+			"integrations": func(description hapmpkg.PackageDescription, rootPath string, _ hapmpkg.GitClient) hapmpkg.Package {
+				return &fakePackage{
+					desc: description,
+					root: rootPath,
+					setupFn: func(_ *fakePackage) error {
+						mu.Lock()
+						active++
+						if active > maxActive {
+							maxActive = active
+						}
+						mu.Unlock()
+
+						started <- struct{}{}
+						<-release
+
+						mu.Lock()
+						active--
+						mu.Unlock()
+						return nil
+					},
+				}
+			},
+		},
+	}
+
+	manager, err := NewWith(tmp, fakeClient{}, registry, "_lock.json", &bytes.Buffer{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	diffs := make([]PackageDiff, 0, 30)
+	for i := 0; i < 30; i++ {
+		diffs = append(diffs, PackageDiff{
+			PackageDescription: hapmpkg.PackageDescription{
+				FullName: fmt.Sprintf("foo/pkg-%02d", i),
+				Kind:     "integrations",
+				Version:  "v1.0.0",
+			},
+			Operation: "add",
+		})
+	}
+
+	applyErr := make(chan error, 1)
+	go func() {
+		applyErr <- manager.Apply(diffs)
+	}()
+
+	for i := 0; i < maxApplyConcurrency; i++ {
+		select {
+		case <-started:
+		case <-time.After(2 * time.Second):
+			t.Fatalf("timed out waiting for started task #%d", i+1)
+		}
+	}
+
+	select {
+	case <-started:
+		t.Fatal("expected at most 20 concurrent tasks before release")
+	case <-time.After(150 * time.Millisecond):
+	}
+
+	close(release)
+
+	select {
+	case err := <-applyErr:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for apply completion")
+	}
+
+	mu.Lock()
+	gotMax := maxActive
+	gotActive := active
+	mu.Unlock()
+	if gotMax != maxApplyConcurrency {
+		t.Fatalf("unexpected max concurrency: got %d, want %d", gotMax, maxApplyConcurrency)
+	}
+	if gotActive != 0 {
+		t.Fatalf("unexpected active tasks after apply: %d", gotActive)
+	}
+	if len(manager.Descriptions()) != 30 {
+		t.Fatalf("unexpected package count: %d", len(manager.Descriptions()))
+	}
+}
+
+func TestManagerApplyCancelOnFirstError(t *testing.T) {
+	tmp := t.TempDir()
+	sentinelErr := errors.New("boom")
+	release := make(chan struct{})
+	var releaseOnce sync.Once
+	var started atomic.Int32
+
+	registry := hapmpkg.Registry{
+		Constructors: map[string]hapmpkg.Constructor{
+			"integrations": func(description hapmpkg.PackageDescription, rootPath string, _ hapmpkg.GitClient) hapmpkg.Package {
+				return &fakePackage{
+					desc: description,
+					root: rootPath,
+					setupFn: func(p *fakePackage) error {
+						started.Add(1)
+						if p.desc.FullName == "foo/pkg-00" {
+							releaseOnce.Do(func() {
+								close(release)
+							})
+							return sentinelErr
+						}
+						<-release
+						return nil
+					},
+				}
+			},
+		},
+	}
+
+	manager, err := NewWith(tmp, fakeClient{}, registry, "_lock.json", &bytes.Buffer{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	lockPath := filepath.Join(tmp, "_lock.json")
+	originalLock := []byte(`[{"full_name":"seed/pkg","kind":"integrations","version":"v1.0.0"}]`)
+	if err := os.WriteFile(lockPath, originalLock, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	diffs := make([]PackageDiff, 0, 30)
+	for i := 0; i < 30; i++ {
+		diffs = append(diffs, PackageDiff{
+			PackageDescription: hapmpkg.PackageDescription{
+				FullName: fmt.Sprintf("foo/pkg-%02d", i),
+				Kind:     "integrations",
+				Version:  "v1.0.0",
+			},
+			Operation: "add",
+		})
+	}
+
+	err = manager.Apply(diffs)
+	if !errors.Is(err, sentinelErr) {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if got := int(started.Load()); got >= len(diffs) {
+		t.Fatalf("expected cancellation before all jobs started, got %d started of %d", got, len(diffs))
+	}
+
+	after, err := os.ReadFile(lockPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(after, originalLock) {
+		t.Fatalf("lockfile was unexpectedly changed: %s", string(after))
 	}
 }

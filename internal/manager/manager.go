@@ -1,16 +1,20 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
+	"sync"
 
 	"github.com/mishamyrt/hapm/internal/git"
 	"github.com/mishamyrt/hapm/internal/manifest"
 	hapmpkg "github.com/mishamyrt/hapm/internal/package"
 )
+
+const maxApplyConcurrency = 20
 
 type PackageManager struct {
 	path     string
@@ -123,43 +127,148 @@ func (m *PackageManager) Diff(update []hapmpkg.PackageDescription, stableOnly bo
 }
 
 func (m *PackageManager) Apply(diffs []PackageDiff) error {
-	fullNamesToRemove := make([]string, 0)
-	for _, diff := range diffs {
+	type applyJob struct {
+		index       int
+		diff        PackageDiff
+		pkg         hapmpkg.Package
+		constructor hapmpkg.Constructor
+	}
+	type applyResult struct {
+		index     int
+		operation string
+		fullName  string
+		pkg       hapmpkg.Package
+		err       error
+	}
+
+	jobs := make([]applyJob, 0, len(diffs))
+	for i, diff := range diffs {
 		switch diff.Operation {
 		case "add":
 			constructor, ok := m.registry.Constructors[diff.Kind]
 			if !ok {
 				return fmt.Errorf("unsupported package kind: %s", diff.Kind)
 			}
-			pkg := constructor(diff.PackageDescription, m.path, m.client)
-			if err := pkg.Setup(); err != nil {
-				return err
-			}
-			m.packages[diff.FullName] = pkg
+			jobs = append(jobs, applyJob{index: i, diff: diff, constructor: constructor})
 		case "delete":
 			pkg, ok := m.packages[diff.FullName]
 			if !ok {
 				continue
 			}
-			if err := pkg.Destroy(); err != nil {
-				return err
-			}
-			fullNamesToRemove = append(fullNamesToRemove, diff.FullName)
+			jobs = append(jobs, applyJob{index: i, diff: diff, pkg: pkg})
 		case "switch":
 			pkg, ok := m.packages[diff.FullName]
 			if !ok {
 				return fmt.Errorf("package is not installed: %s", diff.FullName)
 			}
-			if err := pkg.Switch(diff.Version); err != nil {
-				return err
-			}
+			jobs = append(jobs, applyJob{index: i, diff: diff, pkg: pkg})
 		default:
 			return fmt.Errorf("unsupported operation: %s", diff.Operation)
 		}
 	}
-	for _, fullName := range fullNamesToRemove {
-		delete(m.packages, fullName)
+
+	if len(jobs) == 0 {
+		return m.lock.Dump(m.Descriptions())
 	}
+
+	workers := len(jobs)
+	if workers > maxApplyConcurrency {
+		workers = maxApplyConcurrency
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	jobCh := make(chan applyJob)
+	resultCh := make(chan applyResult, len(jobs))
+	var wg sync.WaitGroup
+
+	worker := func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case job, ok := <-jobCh:
+				if !ok {
+					return
+				}
+
+				result := applyResult{
+					index:     job.index,
+					operation: job.diff.Operation,
+					fullName:  job.diff.FullName,
+				}
+				switch job.diff.Operation {
+				case "add":
+					pkg := job.constructor(job.diff.PackageDescription, m.path, m.client)
+					if err := pkg.Setup(); err != nil {
+						result.err = err
+					} else {
+						result.pkg = pkg
+					}
+				case "delete":
+					result.err = job.pkg.Destroy()
+				case "switch":
+					result.err = job.pkg.Switch(job.diff.Version)
+				}
+				resultCh <- result
+				if result.err != nil {
+					cancel()
+					return
+				}
+			}
+		}
+	}
+
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go worker()
+	}
+
+	go func() {
+		defer close(jobCh)
+		for _, job := range jobs {
+			if ctx.Err() != nil {
+				return
+			}
+			select {
+			case <-ctx.Done():
+				return
+			case jobCh <- job:
+			}
+		}
+	}()
+
+	go func() {
+		wg.Wait()
+		close(resultCh)
+	}()
+
+	results := make([]applyResult, 0, len(jobs))
+	var firstErr error
+	for result := range resultCh {
+		results = append(results, result)
+		if result.err != nil && firstErr == nil {
+			firstErr = result.err
+		}
+	}
+	if firstErr != nil {
+		return firstErr
+	}
+
+	sort.Slice(results, func(i int, j int) bool {
+		return results[i].index < results[j].index
+	})
+	for _, result := range results {
+		switch result.operation {
+		case "add":
+			m.packages[result.fullName] = result.pkg
+		case "delete":
+			delete(m.packages, result.fullName)
+		}
+	}
+
 	return m.lock.Dump(m.Descriptions())
 }
 
