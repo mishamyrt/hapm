@@ -5,7 +5,7 @@ Package manager for Home Assistant which allows you to prepare components for a 
 ## Installation
 
 ```sh
-pip install hapm
+go install github.com/mishamyrt/hapm
 ```
 
 ## Configuration
