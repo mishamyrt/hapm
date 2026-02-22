@@ -1,9 +1,9 @@
 VERSION = 0.4.0
 NAME = $(shell uname -a)
+DOCKER_IMAGE = mishamyrt/hapm
 
 .PHONY: publish
 publish: clean build
-	$(VENV) python3 -m twine upload --repository pypi dist/*
 	git add Makefile
 	git commit -m "chore: release v$(VERSION)"
 	git tag "v$(VERSION)"
@@ -43,3 +43,20 @@ test-e2e:
 		-timeout=30s \
 		-tags=e2e \
 		e2e_test.go
+
+.PHONY: docker-build
+docker-build:
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		-t $(DOCKER_IMAGE):$(VERSION) \
+		-t $(DOCKER_IMAGE):latest \
+		.
+
+.PHONY: docker-publish
+docker-publish:
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		-t $(DOCKER_IMAGE):$(VERSION) \
+		-t $(DOCKER_IMAGE):latest \
+		--push \
+		.

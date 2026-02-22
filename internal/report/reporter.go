@@ -292,7 +292,7 @@ func formatEntry(diff manager.PackageDiff, fullName bool) string {
 		textColor = color.FgRed
 		versionStr = paint(versionStr, color.Faint)
 	}
-	name := diff.PackageDescription.ShortName()
+	name := diff.ShortName()
 	if fullName {
 		name = diff.FullName
 	}
