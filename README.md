@@ -8,6 +8,23 @@ Package manager for Home Assistant which allows you to prepare components for a 
 go install github.com/mishamyrt/hapm
 ```
 
+### Docker
+
+The image is available on Docker Hub:
+
+```sh
+docker pull mishamyrt/hapm
+```
+
+Example — sync packages from a local manifest:
+
+```sh
+docker run --rm \
+  -v "$PWD/hapm.yaml:/tmp/hapm.yaml" \
+  -v "$PWD/.hapm:/tmp/.hapm" \
+  mishamyrt/hapm sync
+```
+
 ## Configuration
 
 A manifest (`hapm.yaml`) is a list of links, divided into several categories. The links are written in a special format and necessarily have a version with `@` in it.
